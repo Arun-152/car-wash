@@ -1,0 +1,176 @@
+.bookings-page-container {
+  padding: 3rem 1.5rem;
+  min-height: calc(100vh - 300px);
+  max-width: 1000px;
+}
+
+.bookings-header {
+  margin-bottom: 2rem;
+}
+
+.bookings-header h2 {
+  font-size: 2rem;
+  color: var(--dark);
+  margin-bottom: 1.5rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 1rem;
+  border-bottom: 2px solid var(--gray-light);
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--gray);
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  position: relative;
+  transition: var(--transition);
+}
+
+.tab-btn:hover {
+  color: var(--primary);
+}
+
+.tab-btn.active {
+  color: var(--primary);
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--primary);
+}
+
+.bookings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.booking-list-card {
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--gray-light);
+  background: white;
+  transition: var(--transition);
+}
+
+.booking-list-card:hover {
+  box-shadow: var(--shadow-sm);
+  border-color: var(--primary-light);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--gray-light);
+}
+
+.booking-code {
+  font-weight: 700;
+  color: var(--dark);
+  font-size: 1.125rem;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.badge-warning { background: #fef3c7; color: #d97706; }
+.badge-info { background: #e0f2fe; color: #0284c7; }
+.badge-primary { background: #dbeafe; color: #2563eb; }
+.badge-success { background: #dcfce3; color: #16a34a; }
+.badge-danger { background: #fee2e2; color: #dc2626; }
+.badge-secondary { background: #f1f5f9; color: #475569; }
+
+.card-body {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr;
+  gap: 1.5rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.info-column h4 {
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.service-name {
+  color: var(--primary);
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.vehicle-info {
+  color: var(--gray);
+  font-size: 0.875rem;
+}
+
+.time-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.date-box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--dark);
+  font-weight: 500;
+}
+
+.price-column {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.payment-status {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.payment-status.unpaid { color: #dc2626; }
+.payment-status.paid { color: #16a34a; }
+
+.card-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+  .card-body {
+    grid-template-columns: 1fr;
+  }
+  .price-column {
+    align-items: flex-start;
+  }
+  .tabs {
+    overflow-x: auto;
+  }
+}
