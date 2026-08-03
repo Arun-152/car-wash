@@ -38,7 +38,7 @@ const LoginPage = () => {
       <div className="auth-split-layout">
         {/* Left Side Branding */}
         <div className="auth-brand-side">
-          <h1>Welcome Back to SparkleWash</h1>
+          <h1>Welcome Back to Clean Wash</h1>
           <p>Sign in to your account to book your next wash, manage vehicles, and track your wallet balance all in one place.</p>
         </div>
 
