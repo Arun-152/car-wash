@@ -18,6 +18,7 @@ const ProfilePage = () => {
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
   const [showEditProfileConfirmModal, setShowEditProfileConfirmModal] = useState(false);
   const [editProfileFormData, setEditProfileFormData] = useState({ name: '', phone: '' });
+  const [errors, setErrors] = useState({});
 
   // Password Modal
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -66,6 +67,18 @@ const ProfilePage = () => {
 
   const handleEditProfileSubmit = (e) => {
     e.preventDefault();
+    const newErrors = {};
+    if (!editProfileFormData.name) newErrors.name = 'Name is required';
+    else if (editProfileFormData.name.trim().length < 3) newErrors.name = 'Name must be at least 3 characters';
+    
+    if (!editProfileFormData.phone) newErrors.phone = 'Phone number is required';
+    else if (!/^\d{10}$/.test(editProfileFormData.phone)) newErrors.phone = 'Phone number must be exactly 10 digits';
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    
     setShowEditProfileConfirmModal(true);
   };
 
@@ -84,18 +97,23 @@ const ProfilePage = () => {
   // --- Password Logic ---
   const handlePasswordInputChange = (e) => {
     setPasswordFormData({ ...passwordFormData, [e.target.name]: e.target.value });
+    setErrors({ ...errors, [e.target.name]: '' });
   };
 
   const handlePasswordSubmit = (e) => {
     e.preventDefault();
-    if (!passwordFormData.currentPassword || !passwordFormData.newPassword || !passwordFormData.confirmPassword) {
-      return toast.error('Please fill all password fields');
-    }
-    if (passwordFormData.newPassword.length < 8) {
-      return toast.error('New password must be at least 8 characters long');
-    }
-    if (passwordFormData.newPassword !== passwordFormData.confirmPassword) {
-      return toast.error('New passwords do not match');
+    const newErrors = {};
+    if (!passwordFormData.currentPassword) newErrors.currentPassword = 'Current password is required';
+    
+    if (!passwordFormData.newPassword) newErrors.newPassword = 'New password is required';
+    else if (passwordFormData.newPassword.length < 8) newErrors.newPassword = 'New password must be at least 8 characters long';
+    
+    if (!passwordFormData.confirmPassword) newErrors.confirmPassword = 'Confirm password is required';
+    else if (passwordFormData.newPassword !== passwordFormData.confirmPassword) newErrors.confirmPassword = 'New passwords do not match';
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
     }
     setShowPasswordConfirmModal(true);
   };
@@ -190,29 +208,32 @@ const ProfilePage = () => {
               <div className="pwd-form-group">
                 <label>Current Password</label>
                 <div className="pwd-input-wrapper">
-                  <input type={showCurrentPassword ? 'text' : 'password'} name="currentPassword" value={passwordFormData.currentPassword} onChange={handlePasswordInputChange} required />
+                  <input type={showCurrentPassword ? 'text' : 'password'} name="currentPassword" value={passwordFormData.currentPassword} onChange={handlePasswordInputChange} />
                   <button type="button" className="pwd-toggle-btn" onClick={() => setShowCurrentPassword(!showCurrentPassword)}>
                     {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+                {errors.currentPassword && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.currentPassword}</span>}
               </div>
               <div className="pwd-form-group">
                 <label>New Password</label>
                 <div className="pwd-input-wrapper">
-                  <input type={showNewPassword ? 'text' : 'password'} name="newPassword" value={passwordFormData.newPassword} onChange={handlePasswordInputChange} required />
+                  <input type={showNewPassword ? 'text' : 'password'} name="newPassword" value={passwordFormData.newPassword} onChange={handlePasswordInputChange} />
                   <button type="button" className="pwd-toggle-btn" onClick={() => setShowNewPassword(!showNewPassword)}>
                     {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+                {errors.newPassword && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.newPassword}</span>}
               </div>
               <div className="pwd-form-group">
                 <label>Confirm New Password</label>
                 <div className="pwd-input-wrapper">
-                  <input type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword" value={passwordFormData.confirmPassword} onChange={handlePasswordInputChange} required />
+                  <input type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword" value={passwordFormData.confirmPassword} onChange={handlePasswordInputChange} />
                   <button type="button" className="pwd-toggle-btn" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
                     {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+                {errors.confirmPassword && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.confirmPassword}</span>}
               </div>
               <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
                 <button type="button" className="btn btn-outline" style={{ flex: 1 }} onClick={() => setShowPasswordModal(false)}>Cancel</button>
@@ -232,14 +253,16 @@ const ProfilePage = () => {
               <div className="pwd-form-group">
                 <label>Full Name</label>
                 <div className="pwd-input-wrapper">
-                  <input type="text" name="name" value={editProfileFormData.name} onChange={(e) => setEditProfileFormData({ ...editProfileFormData, name: e.target.value })} required />
+                  <input type="text" name="name" value={editProfileFormData.name} onChange={(e) => { setEditProfileFormData({ ...editProfileFormData, name: e.target.value }); setErrors({ ...errors, name: '' }); }} />
                 </div>
+                {errors.name && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.name}</span>}
               </div>
               <div className="pwd-form-group">
                 <label>Mobile Number</label>
                 <div className="pwd-input-wrapper">
-                  <input type="text" name="phone" value={editProfileFormData.phone} onChange={(e) => setEditProfileFormData({ ...editProfileFormData, phone: e.target.value })} required />
+                  <input type="text" name="phone" value={editProfileFormData.phone} onChange={(e) => { setEditProfileFormData({ ...editProfileFormData, phone: e.target.value }); setErrors({ ...errors, phone: '' }); }} />
                 </div>
+                {errors.phone && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.phone}</span>}
               </div>
               <div className="pwd-form-group">
                 <label>Email (Read-only)</label>

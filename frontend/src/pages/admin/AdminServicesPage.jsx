@@ -12,6 +12,7 @@ const AdminServicesPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentService, setCurrentService] = useState(null);
   const [confirmModal, setConfirmModal] = useState({ show: false, action: null, id: null });
+  const [errors, setErrors] = useState({});
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -72,6 +73,7 @@ const AdminServicesPage = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setCurrentService(null);
+    setErrors({});
   };
 
   const handleChange = (e) => {
@@ -80,10 +82,25 @@ const AdminServicesPage = () => {
       ...formData,
       [name]: type === 'checkbox' ? checked : value
     });
+    setErrors({ ...errors, [name]: '' });
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.serviceName) newErrors.serviceName = 'Service Name is required';
+    if (!formData.description) newErrors.description = 'Description is required';
+    if (!formData.price) newErrors.price = 'Price is required';
+    else if (formData.price <= 0) newErrors.price = 'Price must be greater than 0';
+    if (!formData.duration) newErrors.duration = 'Duration is required';
+    else if (formData.duration < 15) newErrors.duration = 'Duration must be at least 15 mins';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!validate()) return;
     setConfirmModal({ show: true, action: currentService ? 'edit' : 'add', id: currentService?._id });
   };
 
@@ -202,22 +219,26 @@ const AdminServicesPage = () => {
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>Service Name</label>
-                <input type="text" name="serviceName" value={formData.serviceName} onChange={handleChange} required className="input-field" />
+                <input type="text" name="serviceName" value={formData.serviceName} onChange={handleChange} className="input-field" />
+                {errors.serviceName && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.serviceName}</span>}
               </div>
 
               <div className="form-group">
                 <label>Description</label>
-                <textarea name="description" value={formData.description} onChange={handleChange} required className="input-field" rows="3"></textarea>
+                <textarea name="description" value={formData.description} onChange={handleChange} className="input-field" rows="3"></textarea>
+                {errors.description && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.description}</span>}
               </div>
 
               <div className="form-row">
                 <div className="form-group" style={{ flex: 1 }}>
                   <label>Price (₹)</label>
-                  <input type="number" name="price" value={formData.price} onChange={handleChange} required className="input-field" min="0" />
+                  <input type="number" name="price" value={formData.price} onChange={handleChange} className="input-field" min="0" />
+                  {errors.price && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.price}</span>}
                 </div>
                 <div className="form-group" style={{ flex: 1 }}>
                   <label>Duration (mins)</label>
-                  <input type="number" name="duration" value={formData.duration} onChange={handleChange} required className="input-field" min="15" step="15" />
+                  <input type="number" name="duration" value={formData.duration} onChange={handleChange} className="input-field" min="15" step="15" />
+                  {errors.duration && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.duration}</span>}
                 </div>
               </div>
 

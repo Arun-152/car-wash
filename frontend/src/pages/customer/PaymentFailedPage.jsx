@@ -18,7 +18,7 @@ const PaymentFailedPage = () => {
           </p>
           <div style={{display:'flex', gap:'1rem', justifyContent:'center'}}>
             <Link to={`/my-bookings/${id}`} className="btn btn-primary">Try Payment Again</Link>
-            <Link to="/home" className="btn btn-outline">Back to Home</Link>
+            <Link to="/" className="btn btn-outline">Back to Home</Link>
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@ import { useLocation, useNavigate, Link, Navigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { resetPasswordAPI } from '../../services/api';
 import ConfirmModal from '../../components/common/ConfirmModal';
+import { Eye, EyeOff } from 'lucide-react';
 import './AuthPages.css';
 
 const ResetPasswordPage = () => {
@@ -16,21 +17,29 @@ const ResetPasswordPage = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   if (!email || !otp) {
     return <Navigate to="/forgot-password" replace />;
   }
 
+  const validate = () => {
+    const newErrors = {};
+    if (!password) newErrors.password = 'Password is required';
+    else if (password.length < 8) newErrors.password = 'Password must be at least 8 characters long.';
+    
+    if (!confirmPassword) newErrors.confirmPassword = 'Confirm Password is required';
+    else if (password !== confirmPassword) newErrors.confirmPassword = 'Passwords do not match.';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handlePreSubmit = (e) => {
     e.preventDefault();
-    if (password.length < 8) {
-      toast.error('Password must be at least 8 characters long.');
-      return;
-    }
-    if (password !== confirmPassword) {
-      toast.error('Passwords do not match.');
-      return;
-    }
+    if (!validate()) return;
     setIsModalOpen(true);
   };
 
@@ -68,26 +77,46 @@ const ResetPasswordPage = () => {
             <form className="auth-form" onSubmit={handlePreSubmit}>
               <div className="auth-form-group">
                 <label className="auth-label">New Password</label>
-                <input
-                  type="password"
-                  className="auth-input"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="At least 8 characters"
-                  required
-                />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    className="auth-input"
+                    value={password}
+                    onChange={(e) => { setPassword(e.target.value); setErrors({ ...errors, password: '' }); }}
+                    placeholder="At least 8 characters"
+                    style={{ paddingRight: '2.5rem' }}
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gray)' }}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                {errors.password && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.password}</span>}
               </div>
 
               <div className="auth-form-group">
                 <label className="auth-label">Confirm Password</label>
-                <input
-                  type="password"
-                  className="auth-input"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm your new password"
-                  required
-                />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    className="auth-input"
+                    value={confirmPassword}
+                    onChange={(e) => { setConfirmPassword(e.target.value); setErrors({ ...errors, confirmPassword: '' }); }}
+                    placeholder="Confirm your new password"
+                    style={{ paddingRight: '2.5rem' }}
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gray)' }}
+                  >
+                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                {errors.confirmPassword && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.confirmPassword}</span>}
               </div>
 
               <div style={{ display: 'flex', gap: '1rem', flexDirection: 'column', marginTop: '0.5rem' }}>

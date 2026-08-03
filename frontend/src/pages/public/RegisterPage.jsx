@@ -10,30 +10,41 @@ const RegisterPage = () => {
     name: '', email: '', phone: '', password: ''
   });
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setErrors({ ...errors, [e.target.name]: '' });
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^\d{10}$/;
+
+    if (!formData.name) newErrors.name = 'Full Name is required';
+    else if (formData.name.trim().length < 3) newErrors.name = 'Name must be at least 3 characters';
+
+    if (!formData.email) newErrors.email = 'Email is required';
+    else if (!emailRegex.test(formData.email)) newErrors.email = 'Please enter a valid email address';
+
+    if (!formData.phone) newErrors.phone = 'Phone number is required';
+    else if (!phoneRegex.test(formData.phone)) newErrors.phone = 'Phone number must be exactly 10 digits';
+
+    if (!formData.password) newErrors.password = 'Password is required';
+    else if (formData.password.length < 6) newErrors.password = 'Password must be at least 6 characters long';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Frontend Validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^\d{10}$/;
-
-    if (!emailRegex.test(formData.email)) {
-      return toast.error('Please enter a valid email address');
-    }
-    if (!phoneRegex.test(formData.phone)) {
-      return toast.error('Phone number must be exactly 10 digits');
-    }
-    if (formData.password.length < 6) {
-      return toast.error('Password must be at least 6 characters long');
-    }
+    if (!validate()) return;
 
     setLoading(true);
     try {
@@ -73,8 +84,8 @@ const RegisterPage = () => {
                   placeholder="John Doe"
                   value={formData.name} 
                   onChange={handleChange} 
-                  required 
                 />
+                {errors.name && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.name}</span>}
               </div>
               
               <div className="auth-form-group">
@@ -86,8 +97,8 @@ const RegisterPage = () => {
                   placeholder="john@example.com"
                   value={formData.email} 
                   onChange={handleChange} 
-                  required 
                 />
+                {errors.email && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.email}</span>}
               </div>
 
               <div className="auth-form-group">
@@ -99,8 +110,8 @@ const RegisterPage = () => {
                   placeholder="10-digit mobile number"
                   value={formData.phone} 
                   onChange={handleChange} 
-                  required 
                 />
+                {errors.phone && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.phone}</span>}
               </div>
               
               <div className="auth-form-group">
@@ -112,8 +123,8 @@ const RegisterPage = () => {
                   placeholder="At least 6 characters"
                   value={formData.password} 
                   onChange={handleChange} 
-                  required 
                 />
+                {errors.password && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.password}</span>}
               </div>
               
               <button type="submit" className="btn btn-primary auth-btn" disabled={loading}>

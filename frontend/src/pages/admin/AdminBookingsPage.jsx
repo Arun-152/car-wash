@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { getAllBookings, updateBookingStatusAdmin, approveCancellation, rejectCancellation } from '../../services/api';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import Pagination from '../../components/common/Pagination';
@@ -8,6 +9,8 @@ import './AdminPages.css';
 const AdminBookingsPage = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const context = useOutletContext() || {};
+  const { refreshNotifications } = context;
 
   const [filterCode, setFilterCode] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
@@ -77,6 +80,7 @@ const AdminBookingsPage = () => {
       try {
         await approveCancellation(bookingId);
         fetchBookings();
+        if (refreshNotifications) refreshNotifications();
         toast.success('Cancellation approved successfully.');
       } catch (err) {
         toast.error('Approval failed.');
@@ -85,6 +89,7 @@ const AdminBookingsPage = () => {
       try {
         await rejectCancellation(bookingId);
         fetchBookings();
+        if (refreshNotifications) refreshNotifications();
         toast.success('Cancellation rejected successfully.');
       } catch (err) {
         toast.error('Rejection failed.');

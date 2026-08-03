@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { LayoutDashboard, Users, User, LogOut, Calendar, CreditCard, BarChart, Clock, Scissors, Menu, X, Settings } from 'lucide-react';
+import { LayoutDashboard, Users, User, LogOut, Calendar, CreditCard, BarChart, Clock, Scissors, Menu, X, Settings, Bell } from 'lucide-react';
 import { toast } from 'react-toastify';
 import ConfirmModal from '../common/ConfirmModal';
+import { getAllBookings } from '../../services/api';
 import './AdminLayout.css';
 
 const navItems = [
@@ -22,6 +23,23 @@ const AdminLayout = () => {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [pendingCancellations, setPendingCancellations] = useState(0);
+
+  const fetchPendingCancellations = async () => {
+    try {
+      const data = await getAllBookings();
+      if (Array.isArray(data)) {
+        const count = data.filter(b => b.bookingStatus === 'cancellation-requested').length;
+        setPendingCancellations(count);
+      }
+    } catch (err) {
+      console.error('Failed to fetch pending cancellations', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchPendingCancellations();
+  }, []);
 
   // Close drawer on route change (mobile)
   useEffect(() => {
@@ -133,7 +151,29 @@ const AdminLayout = () => {
             </button>
             <h3>Management Portal</h3>
           </div>
-          <div className="topbar-right">
+          <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+            <div className="notification-icon" style={{ position: 'relative', cursor: 'pointer' }} onClick={() => navigate('/admin/bookings')}>
+              <Bell size={24} style={{ color: 'var(--gray)' }} />
+              {pendingCancellations > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '-5px',
+                  right: '-5px',
+                  backgroundColor: '#ef4444',
+                  color: 'white',
+                  fontSize: '0.7rem',
+                  fontWeight: 'bold',
+                  height: '18px',
+                  width: '18px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  {pendingCancellations}
+                </span>
+              )}
+            </div>
             <span className="date-display">
               {new Date().toLocaleDateString('en-US', {
                 weekday: 'long',
@@ -146,7 +186,7 @@ const AdminLayout = () => {
         </div>
 
         <div className="admin-content">
-          <Outlet />
+          <Outlet context={{ refreshNotifications: fetchPendingCancellations }} />
         </div>
       </main>
 

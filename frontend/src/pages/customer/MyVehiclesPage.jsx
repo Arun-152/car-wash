@@ -25,6 +25,7 @@ const MyVehiclesPage = () => {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [errors, setErrors] = useState({});
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   
@@ -58,6 +59,7 @@ const MyVehiclesPage = () => {
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setErrors({ ...errors, [e.target.name]: '' });
   };
 
   const handleOpenForm = (vehicle = null) => {
@@ -74,6 +76,7 @@ const MyVehiclesPage = () => {
       setEditingId(null);
     }
     setError(null);
+    setErrors({});
     setIsFormOpen(true);
   };
 
@@ -86,13 +89,19 @@ const MyVehiclesPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
+    
+    const newErrors = {};
     const vehicleNumberRegex = /^[A-Z]{2}\d{2}[A-Z]{1,2}\d{4}$/; // Standard Indian format roughly (e.g. MH01AB1234)
-    if (!formData.vehicleNumber) {
-      return setError('Vehicle number is required');
-    }
-    if (!vehicleNumberRegex.test(formData.vehicleNumber)) {
-      return setError('Invalid vehicle number format (e.g., MH01AB1234)');
+    
+    if (!formData.vehicleNumber) newErrors.vehicleNumber = 'Vehicle number is required';
+    else if (!vehicleNumberRegex.test(formData.vehicleNumber.replace(/-/g, ''))) newErrors.vehicleNumber = 'Invalid vehicle number format (e.g., MH01AB1234)';
+    
+    if (!formData.brand) newErrors.brand = 'Brand is required';
+    if (!formData.model) newErrors.model = 'Model/Location is required';
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
     }
 
     try {
@@ -171,9 +180,9 @@ const MyVehiclesPage = () => {
                     name="vehicleNumber" 
                     value={formData.vehicleNumber} 
                     onChange={handleInputChange} 
-                    placeholder="e.g. MH-01-AB-1234"
-                    required 
+                    placeholder="e.g. MH01AB1234"
                   />
+                  {errors.vehicleNumber && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.vehicleNumber}</span>}
                 </div>
                 
                 <div className="form-group">
@@ -193,8 +202,8 @@ const MyVehiclesPage = () => {
                     value={formData.brand} 
                     onChange={handleInputChange} 
                     placeholder="e.g. Honda"
-                    required 
                   />
+                  {errors.brand && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.brand}</span>}
                 </div>
                 
                 <div className="form-group">
@@ -205,8 +214,8 @@ const MyVehiclesPage = () => {
                     value={formData.model} 
                     onChange={handleInputChange} 
                     placeholder="e.g. City"
-                    required 
                   />
+                  {errors.model && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.model}</span>}
                 </div>
               </div>
               

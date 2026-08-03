@@ -58,7 +58,7 @@ const Navbar = () => {
 
         {/* Desktop Navigation Center */}
         <nav className="navbar-nav desktop-only">
-          <NavLink to="/" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>Home</NavLink>
+          <NavLink to="/" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"} end>Home</NavLink>
           <NavLink to="/services" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>Services</NavLink>
           {user && user.role === 'customer' && (
             <NavLink to="/my-bookings" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>My Bookings</NavLink>
@@ -120,7 +120,7 @@ const Navbar = () => {
       {/* Mobile Navigation Dropdown */}
       <div className={`mobile-nav ${isMenuOpen ? 'open' : ''}`}>
         <div className="mobile-nav-links">
-          <NavLink to="/" className={({ isActive }) => isActive ? "mobile-link active" : "mobile-link"} onClick={() => setIsMenuOpen(false)}>Home</NavLink>
+          <NavLink to="/" className={({ isActive }) => isActive ? "mobile-link active" : "mobile-link"} onClick={() => setIsMenuOpen(false)} end>Home</NavLink>
           <NavLink to="/services" className={({ isActive }) => isActive ? "mobile-link active" : "mobile-link"} onClick={() => setIsMenuOpen(false)}>Services</NavLink>
           {user && user.role === 'customer' && (
             <>

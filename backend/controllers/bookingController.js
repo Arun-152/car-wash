@@ -505,7 +505,9 @@ const requestCancellation = async (req, res, next) => {
       });
     }
 
-    const bookingDateTimeStr = `${booking.bookingDate.toISOString().split('T')[0]}T${booking.startTime}:00`;
+    const bDate = booking.bookingDate;
+    const dateStr = [bDate.getFullYear(), String(bDate.getMonth() + 1).padStart(2, '0'), String(bDate.getDate()).padStart(2, '0')].join('-');
+    const bookingDateTimeStr = `${dateStr}T${booking.startTime}:00`;
     const bookingDateTime = new Date(bookingDateTimeStr);
     const diffInHours = (bookingDateTime.getTime() - Date.now()) / (1000 * 60 * 60);
 

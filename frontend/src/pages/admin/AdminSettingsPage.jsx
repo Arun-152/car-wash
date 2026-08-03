@@ -34,6 +34,7 @@ const AdminSettingsPage = () => {
   const [message, setMessage] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isEditing, setIsEditing] = useState(true);
+  const [errors, setErrors] = useState({});
 
   // ── Availability state ──
   const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -86,6 +87,7 @@ const AdminSettingsPage = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setSettings((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
   const handleImageUpload = (e) => {
@@ -99,8 +101,24 @@ const AdminSettingsPage = () => {
     }
   };
 
+  const validate = () => {
+    const newErrors = {};
+    if (!settings.shopName) newErrors.shopName = 'Shop Name is required';
+    if (!settings.email) newErrors.email = 'Email is required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(settings.email)) newErrors.email = 'Please enter a valid email address';
+    
+    if (!settings.phone) newErrors.phone = 'Phone number is required';
+    else if (!/^\d{10}$/.test(settings.phone)) newErrors.phone = 'Phone number must be exactly 10 digits';
+    
+    if (!settings.address) newErrors.address = 'Address is required';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmitClick = (e) => {
     e.preventDefault();
+    if (!validate()) return;
     setShowConfirmModal(true);
   };
 
@@ -247,23 +265,27 @@ const AdminSettingsPage = () => {
         )}
         <div className="form-group">
           <label>Shop Name</label>
-          <input type="text" name="shopName" value={settings.shopName} onChange={handleChange} required className="input-field" />
+          <input type="text" name="shopName" value={settings.shopName} onChange={handleChange} className="input-field" />
+          {errors.shopName && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.shopName}</span>}
         </div>
         
         <div className="form-row">
           <div className="form-group" style={{ flex: 1 }}>
             <label>Email</label>
-            <input type="email" name="email" value={settings.email} onChange={handleChange} required className="input-field" />
+            <input type="email" name="email" value={settings.email} onChange={handleChange} className="input-field" />
+            {errors.email && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.email}</span>}
           </div>
           <div className="form-group" style={{ flex: 1 }}>
             <label>Phone Number</label>
-            <input type="text" name="phone" value={settings.phone} onChange={handleChange} required className="input-field" />
+            <input type="text" name="phone" value={settings.phone} onChange={handleChange} className="input-field" />
+            {errors.phone && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.phone}</span>}
           </div>
         </div>
 
         <div className="form-group">
           <label>Address</label>
-          <input type="text" name="address" value={settings.address} onChange={handleChange} required className="input-field" />
+          <input type="text" name="address" value={settings.address} onChange={handleChange} className="input-field" />
+          {errors.address && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.address}</span>}
         </div>
         
         <div className="form-group">

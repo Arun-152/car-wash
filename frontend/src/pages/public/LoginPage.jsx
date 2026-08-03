@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 import { AuthContext } from '../../context/AuthContext';
 import { loginUser } from '../../services/api';
 import { toast } from 'react-toastify';
@@ -9,14 +10,29 @@ const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
   
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
   const successMessage = location.state?.successMessage;
 
+  const validate = () => {
+    const newErrors = {};
+    if (!email) newErrors.email = 'Email is required.';
+    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Please enter a valid email address.';
+    
+    if (!password) newErrors.password = 'Password is required.';
+    else if (password.length < 8) newErrors.password = 'Password must be at least 8 characters.';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validate()) return;
     setLoading(true);
     try {
       const data = await loginUser({ email, password });
@@ -64,9 +80,9 @@ const LoginPage = () => {
                   className="auth-input"
                   placeholder="Enter your email"
                   value={email} 
-                  onChange={(e) => setEmail(e.target.value)} 
-                  required 
+                  onChange={(e) => { setEmail(e.target.value); setErrors({ ...errors, email: '' }); }} 
                 />
+                {errors.email && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.email}</span>}
               </div>
               
               <div className="auth-form-group">
@@ -74,14 +90,24 @@ const LoginPage = () => {
                   <label className="auth-label">Password</label>
                   <Link to="/forgot-password" className="auth-link">Forgot Password?</Link>
                 </div>
-                <input 
-                  type="password" 
-                  className="auth-input"
-                  placeholder="Enter your password"
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)} 
-                  required 
-                />
+                <div style={{ position: 'relative' }}>
+                  <input 
+                    type={showPassword ? 'text' : 'password'}
+                    className="auth-input"
+                    placeholder="Enter your password"
+                    value={password} 
+                    onChange={(e) => { setPassword(e.target.value); setErrors({ ...errors, password: '' }); }} 
+                    style={{ paddingRight: '2.5rem' }}
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gray)' }}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                {errors.password && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.password}</span>}
               </div>
               
               <button type="submit" className="btn btn-primary auth-btn" disabled={loading}>

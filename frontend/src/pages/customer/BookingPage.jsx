@@ -86,6 +86,7 @@ const BookingPage = () => {
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [vehicleValidationError, setVehicleValidationError] = useState(null);
+  const [errors, setErrors] = useState({});
 
   // ── Vehicle Validation Helper ──────────────────────────────────────────
   const validateVehicleCompatibility = useCallback((service, vehicle) => {
@@ -246,14 +247,26 @@ const BookingPage = () => {
 
   const handleConfirmBookingClick = () => {
     setBookingError(null);
+    setErrors({});
 
-    // Validations
-    if (!selectedService) return setBookingError('Please select a service.');
-    if (!selectedVehicle) return setBookingError('Please select a vehicle or add one if you haven\'t already.');
-    if (vehicleValidationError) return setBookingError('Please select a compatible vehicle for the chosen service.');
-    if (!selectedDate) return setBookingError('Please select a date.');
-    if (dateMessage?.type === 'error') return setBookingError(dateMessage.msg);
-    if (!selectedSlot) return setBookingError('Please select a time slot.');
+    const newErrors = {};
+    if (!selectedService) newErrors.service = 'Please select a service.';
+    
+    if (!selectedVehicle) {
+      newErrors.vehicle = 'Please select a vehicle or add one if you haven\'t already.';
+    } else if (vehicleValidationError) {
+      newErrors.vehicle = 'Please select a compatible vehicle for the chosen service.';
+    }
+    
+    if (!selectedDate) newErrors.date = 'Please select a date.';
+    else if (dateMessage?.type === 'error') newErrors.date = dateMessage.msg;
+    
+    if (!selectedSlot) newErrors.slot = 'Please select a time slot.';
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
 
     setShowPaymentModal(true);
   };
@@ -342,6 +355,7 @@ const BookingPage = () => {
     const srv = services.find(s => s._id === e.target.value);
     setSelectedService(srv || null);
     setSelectedSlot(null); // reset slot when duration might change
+    setErrors({ ...errors, service: '', slot: '' });
     
     if (srv && selectedVehicle) {
       const err = validateVehicleCompatibility(srv, selectedVehicle);
@@ -355,6 +369,7 @@ const BookingPage = () => {
   const handleVehicleChange = (e) => {
     const v = vehicles.find(v => v._id === e.target.value);
     setSelectedVehicle(v || null);
+    setErrors({ ...errors, vehicle: '' });
     
     if (selectedService && v) {
       const err = validateVehicleCompatibility(selectedService, v);
@@ -444,6 +459,7 @@ const BookingPage = () => {
                       </div>
                     </div>
                   )}
+                  {errors.service && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.service}</span>}
                 </div>
               )}
             </div>
@@ -475,6 +491,7 @@ const BookingPage = () => {
                       {vehicleValidationError}
                     </div>
                   )}
+                  {errors.vehicle && !vehicleValidationError && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.vehicle}</span>}
                 </div>
               )}
             </div>
@@ -503,8 +520,10 @@ const BookingPage = () => {
                   onChange={(e) => {
                     setSelectedDate(e.target.value);
                     setBookingError(null);
+                    setErrors({ ...errors, date: '' });
                   }}
                 />
+                {errors.date && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.date}</span>}
               </div>
 
               {selectedDate && dateMessage && (
@@ -549,6 +568,7 @@ const BookingPage = () => {
                       ))}
                     </div>
                   )}
+                  {errors.slot && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.slot}</span>}
                 </div>
               )}
             </div>

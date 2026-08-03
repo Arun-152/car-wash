@@ -48,7 +48,9 @@ const MyBookingsDetailsPage = () => {
   if (loading) return <div><div className="container" style={{ padding: '4rem' }}>Loading...</div></div>;
   if (error || !booking) return <div><div className="container" style={{ padding: '4rem' }}>{error}</div></div>;
 
-  const bookingDateTimeStr = `${new Date(booking.bookingDate).toISOString().split('T')[0]}T${booking.startTime}:00`;
+  const bDate = new Date(booking.bookingDate);
+  const dateStr = [bDate.getFullYear(), String(bDate.getMonth() + 1).padStart(2, '0'), String(bDate.getDate()).padStart(2, '0')].join('-');
+  const bookingDateTimeStr = `${dateStr}T${booking.startTime}:00`;
   const bookingDateTime = new Date(bookingDateTimeStr);
   const diffInHours = (bookingDateTime.getTime() - Date.now()) / (1000 * 60 * 60);
   const isCancelExpired = diffInHours < 1;
