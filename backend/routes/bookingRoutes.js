@@ -5,16 +5,16 @@ const {
   createBooking,
   getBookingById,
   getMyBookings,
-  cancelBooking
+  requestCancellation
 } = require('../controllers/bookingController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
 router.use(protect);
 
 router.get('/my', authorize('customer'), getMyBookings);
-router.get('/slots', authorize('customer'), getAvailableSlots);
+router.get('/slots', authorize('customer', 'admin'), getAvailableSlots);
 router.post('/', authorize('customer'), createBooking);
-router.put('/:id/cancel', authorize('customer'), cancelBooking);
+router.put('/:id/cancel-request', authorize('customer'), requestCancellation);
 
 router.get('/:id', getBookingById);
 

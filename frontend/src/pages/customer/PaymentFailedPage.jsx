@@ -9,7 +9,6 @@ const PaymentFailedPage = () => {
 
   return (
     <div className="page-wrapper bg-light">
-      <Navbar />
       <div className="container" style={{display:'flex', justifyContent:'center', alignItems:'center', minHeight:'70vh'}}>
         <div className="card" style={{padding:'4rem', textAlign:'center', maxWidth:'600px', width: '100%'}}>
           <div style={{display: 'flex', justifyContent: 'center', marginBottom:'1rem', color: '#ef4444'}}><XCircle size={64} /></div>
@@ -23,7 +22,6 @@ const PaymentFailedPage = () => {
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 };

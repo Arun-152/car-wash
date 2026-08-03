@@ -1,272 +1,504 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '../../components/common/Navbar';
 import Footer from '../../components/common/Footer';
-import { getServices, getMyVehicles, getAvailableSlots, createBooking, createPaymentOrder, verifyPayment } from '../../services/api';
+import ConfirmModal from '../../components/common/ConfirmModal';
+import { toast } from 'react-toastify';
+import {
+  getServices,
+  getMyVehicles,
+  getAvailableSlots,
+  createBooking,
+  createPaymentOrder,
+  verifyPayment,
+  getPublicAvailability,
+  getShopSettings,
+} from '../../services/api';
 import './BookingPage.css';
+
+// ─── Helpers ───────────────────────────────────────────────────────────────
+
+/** Convert "HH:MM" → "hh:MM AM/PM" */
+const to12h = (timeStr) => {
+  if (!timeStr) return '';
+  const [hRaw, m] = timeStr.split(':');
+  const h = parseInt(hRaw, 10);
+  const suffix = h >= 12 ? 'PM' : 'AM';
+  const hour = h % 12 === 0 ? 12 : h % 12;
+  return `${hour}:${m} ${suffix}`;
+};
+
+/** "YYYY-MM-DD" → "Monday, 31 July 2026" */
+const formatDate = (dateStr) => {
+  if (!dateStr) return '';
+  // Parse as local date to avoid timezone shift
+  const [y, mo, d] = dateStr.split('-').map(Number);
+  const date = new Date(y, mo - 1, d);
+  return date.toLocaleDateString('en-IN', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+};
+
+/** "YYYY-MM-DD" → JS Date object interpreted as local */
+const parseLocalDate = (dateStr) => {
+  const [y, mo, d] = dateStr.split('-').map(Number);
+  return new Date(y, mo - 1, d);
+};
+
+/** Get today as "YYYY-MM-DD" string (local) */
+const todayStr = () => {
+  const d = new Date();
+  return [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, '0'),
+    String(d.getDate()).padStart(2, '0'),
+  ].join('-');
+};
+
+// ─── Component ─────────────────────────────────────────────────────────────
 
 const BookingPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [step, setStep] = useState(1);
+  // Data
   const [services, setServices] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [availableSlots, setAvailableSlots] = useState([]);
-  
+  const [availability, setAvailability] = useState(null); // working days, breaks, blocked dates
+  const [shopSettings, setShopSettings] = useState(null); // opening/closing time
+
+  // UI state
   const [loading, setLoading] = useState(true);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [bookingError, setBookingError] = useState(null);
+  const [dateMessage, setDateMessage] = useState(null); // per-date warning/info
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
-  // Booking State
+  // Selections
   const [selectedService, setSelectedService] = useState(null);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedSlot, setSelectedSlot] = useState(null);
 
-  // Load Razorpay Script
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
+  // ── Load initial data ──────────────────────────────────────────────────
+
+  useEffect(() => {
+    const fetchAll = async () => {
+      setLoading(true);
+      try {
+        const [srvData, vehicleData, avData, shopData] = await Promise.all([
+          getServices(),
+          getMyVehicles(),
+          getPublicAvailability(),
+          getShopSettings(),
+        ]);
+
+        const activeServices = srvData.filter((s) => s.isActive);
+        setServices(activeServices);
+        setVehicles(vehicleData);
+        setAvailability(avData);
+        setShopSettings(shopData);
+
+        // Pre-select service if navigated from "Book Now" button
+        if (location.state?.selectedService) {
+          const srv = activeServices.find(
+            (s) => s._id === location.state.selectedService
+          );
+          if (srv) setSelectedService(srv);
+        } else if (activeServices.length > 0) {
+          setSelectedService(activeServices[0]);
+        }
+
+        // Pre-select first vehicle if available
+        if (vehicleData.length > 0) {
+          setSelectedVehicle(vehicleData[0]);
+        }
+      } catch (err) {
+        setError('Failed to load booking details. Please refresh and try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAll();
+  }, [location.state]);
+
+  // ── Date validation helper ─────────────────────────────────────────────
+
+  const validateDate = useCallback(
+    (dateStr) => {
+      if (!dateStr || !availability) return null;
+
+      const date = parseLocalDate(dateStr);
+      const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+
+      // Check working days
+      if (
+        availability.workingDays &&
+        availability.workingDays.length > 0 &&
+        !availability.workingDays.includes(dayName)
+      ) {
+        return {
+          type: 'error',
+          msg: `The shop is closed on ${dayName}s. Working days: ${availability.workingDays.join(', ')}.`,
+        };
+      }
+
+      // Check blocked dates — handle both old [Date] and new [{date, reason}] formats
+      if (availability.blockedDates && availability.blockedDates.length > 0) {
+        const dateTime = date.getTime();
+        const isBlocked = availability.blockedDates.some((bd) => {
+          const blocked = new Date(bd?.date ?? bd);
+          blocked.setHours(0, 0, 0, 0);
+          return blocked.getTime() === dateTime;
+        });
+        if (isBlocked) {
+          return {
+            type: 'error',
+            msg: 'The shop is closed on this date (holiday/blocked day). Please choose another date.',
+          };
+        }
+      }
+
+      return null;
+    },
+    [availability]
+  );
+
+  // ── Fetch slots whenever date or service changes ───────────────────────
+
+  useEffect(() => {
+    const fetchSlots = async () => {
+      if (!selectedDate || !selectedService) return;
+
+      // Validate date first
+      const validationError = validateDate(selectedDate);
+      setDateMessage(validationError);
+      setAvailableSlots([]);
+      setSelectedSlot(null);
+
+      if (validationError) return; // Don't fetch slots for invalid dates
+
+      setSlotsLoading(true);
+      setBookingError(null);
+      try {
+        const slots = await getAvailableSlots(selectedDate, selectedService.duration, selectedService._id);
+        setAvailableSlots(slots);
+        if (slots.length === 0) {
+          setDateMessage({
+            type: 'info',
+            msg: 'No available time slots for this date. All slots are fully booked or the shop is closed. Please choose another date.',
+          });
+        } else {
+          setDateMessage(null);
+        }
+      } catch (err) {
+        const msg = err.response?.data?.message || 'Failed to fetch available slots.';
+        setDateMessage({ type: 'error', msg });
+      } finally {
+        setSlotsLoading(false);
+      }
+    };
+    fetchSlots();
+  }, [selectedDate, selectedService, validateDate]);
+
+  // ── Razorpay loader ────────────────────────────────────────────────────
+
+  const loadRazorpayScript = () =>
+    new Promise((resolve) => {
       const script = document.createElement('script');
       script.src = 'https://checkout.razorpay.com/v1/checkout.js';
       script.onload = () => resolve(true);
       script.onerror = () => resolve(false);
       document.body.appendChild(script);
     });
-  };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const srvData = await getServices();
-        const activeServices = srvData.filter(s => s.isActive);
-        setServices(activeServices);
-        
-        const vehicleData = await getMyVehicles();
-        setVehicles(vehicleData);
+  // ── Confirm booking & launch Razorpay ─────────────────────────────────
 
-        // Auto-select service if passed via URL query params or state
-        if (location.state?.selectedService) {
-          const srv = activeServices.find(s => s._id === location.state.selectedService);
-          if (srv) setSelectedService(srv);
-        }
-      } catch (err) {
-        setError('Failed to load booking details');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [location.state]);
-
-  useEffect(() => {
-    const fetchSlots = async () => {
-      if (selectedDate && selectedService) {
-        setSlotsLoading(true);
-        try {
-          const slots = await getAvailableSlots(selectedDate, selectedService.duration);
-          setAvailableSlots(slots);
-          setSelectedSlot(null);
-        } catch (err) {
-          setBookingError(err.response?.data?.message || 'Failed to fetch slots');
-        } finally {
-          setSlotsLoading(false);
-        }
-      }
-    };
-    fetchSlots();
-  }, [selectedDate, selectedService]);
-
-  const handleNextStep = () => {
-    if (step === 1 && !selectedService) return alert('Please select a service');
-    if (step === 2 && !selectedVehicle) return alert('Please select a vehicle');
-    if (step === 3 && (!selectedDate || !selectedSlot)) return alert('Please select a date and time slot');
-    setStep(step + 1);
+  const handleConfirmBookingClick = () => {
     setBookingError(null);
+
+    // Validations
+    if (!selectedService) return setBookingError('Please select a service.');
+    if (!selectedVehicle) return setBookingError('Please select a vehicle or add one if you haven\'t already.');
+    if (!selectedDate) return setBookingError('Please select a date.');
+    if (dateMessage?.type === 'error') return setBookingError(dateMessage.msg);
+    if (!selectedSlot) return setBookingError('Please select a time slot.');
+
+    setShowPaymentModal(true);
   };
 
   const handleConfirmBooking = async () => {
+    setShowPaymentModal(false);
     setIsSubmitting(true);
-    setBookingError(null);
     try {
-      // 1. Create Pending Booking
+      // 1. Create booking (backend re-validates slot availability)
       const payload = {
         serviceId: selectedService._id,
         vehicleId: selectedVehicle._id,
         bookingDate: selectedDate,
         startTime: selectedSlot.startTime,
         endTime: selectedSlot.endTime,
-        totalAmount: selectedService.price
+        totalAmount: selectedService.price,
       };
       const bookingResponse = await createBooking(payload);
-      
-      // 2. Load Razorpay Script
-      const res = await loadRazorpayScript();
-      if (!res) {
-        alert('Razorpay SDK failed to load. Are you online?');
+
+      // 2. Load Razorpay SDK
+      const sdkLoaded = await loadRazorpayScript();
+      if (!sdkLoaded) {
+        setBookingError('Razorpay SDK failed to load. Please check your internet connection.');
         setIsSubmitting(false);
         return;
       }
 
-      // 3. Create Payment Order on Backend
+      // 3. Create payment order
       const orderData = await createPaymentOrder(bookingResponse._id);
 
-      // 4. Launch Razorpay Checkout
+      // 4. Launch Razorpay checkout
+      console.log("FRONTEND KEY:", import.meta.env.VITE_RAZORPAY_KEY_ID);
       const options = {
-        key: orderData.keyId,
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: orderData.amount,
         currency: orderData.currency,
-        name: "Car Wash Booking",
+        name: 'Car Wash Booking',
         description: `Payment for ${selectedService.serviceName}`,
         order_id: orderData.orderId,
-        handler: async function (response) {
+        handler: async (response) => {
           try {
-            // 5. Verify Signature on Backend
             await verifyPayment({
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
-              bookingId: bookingResponse._id
+              bookingId: bookingResponse._id,
             });
-            // Success
+            toast.success('Payment completed successfully.');
             navigate(`/payment-success/${bookingResponse._id}`);
-          } catch (verifyErr) {
-            console.error('Verification Error', verifyErr);
+          } catch {
+            toast.error('Payment failed.');
             navigate(`/payment-failed/${bookingResponse._id}`);
           }
         },
-        prefill: {
-          name: "Customer", // Ideally fetch from AuthContext
-          email: "customer@example.com",
-        },
-        theme: {
-          color: "#3b82f6",
-        },
+        prefill: { name: 'Customer', email: 'customer@example.com' },
+        theme: { color: '#3b82f6' },
         modal: {
-          ondismiss: function() {
-            // User closed popup
-            navigate(`/payment-failed/${bookingResponse._id}`);
-          }
-        }
+          ondismiss: () => {
+            // Check if we actually completed payment, otherwise it's just a closure
+            console.log("Razorpay Checkout closed.");
+            setIsSubmitting(false);
+          },
+        },
       };
 
-      const paymentObject = new window.Razorpay(options);
-      paymentObject.open();
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', function (response) {
+        toast.error('Payment failed.');
+        setBookingError(`Payment Failed: ${response.error.description || 'Unknown Error'}`);
+        setIsSubmitting(false);
+      });
 
+      rzp.open();
     } catch (err) {
-      setBookingError(err.response?.data?.message || 'Failed to initialize payment');
+      setBookingError(
+        err.response?.data?.message ||
+        'Failed to create booking. Please try again.'
+      );
       setIsSubmitting(false);
     }
   };
 
-  if (loading) return <div><Navbar /><div className="container" style={{padding:'4rem'}}>Loading...</div><Footer /></div>;
-  if (error) return <div><Navbar /><div className="container" style={{padding:'4rem'}}>{error}</div><Footer /></div>;
+  // ── Event Handlers ─────────────────────────────────────────────────────
+
+  const handleServiceChange = (e) => {
+    const srv = services.find(s => s._id === e.target.value);
+    setSelectedService(srv || null);
+    setSelectedSlot(null); // reset slot when duration might change
+  };
+
+  const handleVehicleChange = (e) => {
+    const v = vehicles.find(v => v._id === e.target.value);
+    setSelectedVehicle(v || null);
+  };
+
+  // ── Loading / error states ─────────────────────────────────────────────
+
+  if (loading)
+    return (
+      <div className="page-wrapper bg-light">
+        <Navbar />
+        <div className="container booking-container">
+          <div className="booking-loading card">
+            <div className="loading-spinner" />
+            <p>Loading booking details…</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="page-wrapper bg-light">
+        <Navbar />
+        <div className="container booking-container">
+          <div className="booking-error-card card">
+            <p>{error}</p>
+            <button className="btn btn-primary" onClick={() => window.location.reload()}>
+              Retry
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+
+  // ── Render ─────────────────────────────────────────────────────────────
 
   return (
     <div className="page-wrapper bg-light">
-      <Navbar />
-      
       <div className="container booking-container">
-        <div className="booking-header card" style={{ padding: '2rem', marginBottom: '2rem', borderBottom: 'none' }}>
-          <h2 style={{ textAlign: 'center', marginBottom: '1.5rem' }}>Book an Appointment</h2>
-          <div className="stepper" style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border-light)', paddingTop: '1.5rem' }}>
-            <div className={`step ${step >= 1 ? 'active' : ''}`} style={{ fontWeight: step >= 1 ? '600' : '400', color: step >= 1 ? 'var(--primary)' : 'var(--text-muted)' }}>1. Service</div>
-            <div className={`step ${step >= 2 ? 'active' : ''}`} style={{ fontWeight: step >= 2 ? '600' : '400', color: step >= 2 ? 'var(--primary)' : 'var(--text-muted)' }}>2. Vehicle</div>
-            <div className={`step ${step >= 3 ? 'active' : ''}`} style={{ fontWeight: step >= 3 ? '600' : '400', color: step >= 3 ? 'var(--primary)' : 'var(--text-muted)' }}>3. Date & Time</div>
-            <div className={`step ${step >= 4 ? 'active' : ''}`} style={{ fontWeight: step >= 4 ? '600' : '400', color: step >= 4 ? 'var(--primary)' : 'var(--text-muted)' }}>4. Confirm</div>
-          </div>
+
+        <div className="booking-header">
+          <h2>Book Your Appointment</h2>
         </div>
 
-        <div className="booking-content card" style={{ padding: '2rem' }}>
-          {bookingError && <div className="error-message">{bookingError}</div>}
+        {/* Global error banner */}
+        {bookingError && (
+          <div className="booking-alert booking-alert--error">{bookingError}</div>
+        )}
 
-          {/* STEP 1: SERVICE */}
-          {step === 1 && (
-            <div className="step-content">
-              <h3>Select a Service</h3>
+        <div className="booking-layout">
+
+          {/* ══ LEFT COLUMN: FORM ══ */}
+          <div className="booking-form-col">
+
+            {/* 1. Service Selection */}
+            <div className="booking-section">
+              <h3>1. Select Service</h3>
               {services.length === 0 ? (
-                <p>No services currently available.</p>
+                <p className="empty-state">No active services available at the moment.</p>
               ) : (
-                <div className="service-selection-grid">
-                  {services.map(service => (
-                    <div 
-                      key={service._id} 
-                      className={`selection-card ${selectedService?._id === service._id ? 'selected' : ''}`}
-                      onClick={() => setSelectedService(service)}
-                    >
-                      <h4>{service.serviceName}</h4>
-                      <p style={{ whiteSpace: 'pre-wrap' }}>{service.description}</p>
-                      <div className="card-meta" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-light)' }}>
-                        <span style={{ color: 'var(--text-muted)' }}>Duration: {service.duration} mins</span>
-                        <span className="price" style={{ fontWeight: '600', color: 'var(--dark)' }}>₹{service.price}</span>
+                <div className="form-group">
+                  <select
+                    className="form-select"
+                    value={selectedService?._id || ''}
+                    onChange={handleServiceChange}
+                  >
+                    <option value="" disabled>-- Choose a Service --</option>
+                    {services.map(s => (
+                      <option key={s._id} value={s._id}>{s.serviceName}</option>
+                    ))}
+                  </select>
+
+                  {selectedService && (
+                    <div className="service-info-card">
+                      <p>{selectedService.description}</p>
+                      <div className="meta">
+                        <span>⏱ {selectedService.duration} mins</span>
+                        <span className="meta-price">₹{selectedService.price}</span>
                       </div>
                     </div>
-                  ))}
+                  )}
                 </div>
               )}
             </div>
-          )}
 
-          {/* STEP 2: VEHICLE */}
-          {step === 2 && (
-            <div className="step-content">
-              <h3>Select Your Vehicle</h3>
+            {/* 2. Vehicle Selection */}
+            <div className="booking-section">
+              <h3>2. Select Vehicle</h3>
               {vehicles.length === 0 ? (
-                <div>
-                  <p>You don't have any vehicles registered.</p>
-                  <button className="btn btn-outline" onClick={() => navigate('/my-vehicles')}>Add a Vehicle First</button>
-                </div>
+                <button
+                  className="add-vehicle-btn"
+                  onClick={() => navigate('/my-vehicles')}
+                >
+                  + Add a Vehicle First
+                </button>
               ) : (
-                <div className="vehicle-selection-grid">
-                  {vehicles.map(vehicle => (
-                    <div 
-                      key={vehicle._id} 
-                      className={`selection-card ${selectedVehicle?._id === vehicle._id ? 'selected' : ''}`}
-                      onClick={() => setSelectedVehicle(vehicle)}
-                    >
-                      <h4>{vehicle.brand} {vehicle.model}</h4>
-                      <p>{vehicle.vehicleNumber}</p>
-                      <span className="badge">{vehicle.vehicleType}</span>
-                    </div>
-                  ))}
+                <div className="form-group">
+                  <select
+                    className="form-select"
+                    value={selectedVehicle?._id || ''}
+                    onChange={handleVehicleChange}
+                  >
+                    <option value="" disabled>-- Choose your Vehicle --</option>
+                    {vehicles.map(v => (
+                      <option key={v._id} value={v._id}>{v.brand} {v.model} ({v.vehicleNumber})</option>
+                    ))}
+                  </select>
                 </div>
               )}
             </div>
-          )}
 
-          {/* STEP 3: DATE & TIME */}
-          {step === 3 && (
-            <div className="step-content">
-              <h3>Select Date & Time</h3>
-              <div className="date-picker-wrapper">
-                <label>Choose Date:</label>
-                <input 
-                  type="date" 
-                  value={selectedDate} 
-                  min={new Date().toISOString().split('T')[0]}
-                  onChange={(e) => setSelectedDate(e.target.value)} 
+            {/* 3. Date & Time Selection */}
+            <div className="booking-section">
+              <h3>3. Date & Time</h3>
+
+              {shopSettings && (
+                <div className="booking-alert booking-alert--info" style={{ marginBottom: '1.5rem' }}>
+                  <strong>Shop hours:</strong> {to12h(shopSettings.openingTime)} – {to12h(shopSettings.closingTime)}<br />
+                  {availability?.workingDays && (
+                    <span><strong>Open:</strong> {availability.workingDays.join(', ')}</span>
+                  )}
+                </div>
+              )}
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="booking-date">Choose Date</label>
+                <input
+                  id="booking-date"
+                  type="date"
+                  className="form-input"
+                  value={selectedDate}
+                  min={todayStr()}
+                  onChange={(e) => {
+                    setSelectedDate(e.target.value);
+                    setBookingError(null);
+                  }}
                 />
               </div>
 
-              {selectedDate && (
-                <div className="slots-wrapper">
-                  <h4>Available Time Slots (Based on {selectedService.duration} min duration)</h4>
+              {selectedDate && dateMessage && (
+                <div className={`booking-alert booking-alert--${dateMessage.type}`}>
+                  {dateMessage.msg}
+                </div>
+              )}
+
+              {selectedDate && !dateMessage?.type && selectedService && (
+                <div className="slots-wrapper" style={{ marginTop: '1.5rem' }}>
+                  <h4>
+                    Available Slots
+                    <span className="slots-subtitle">
+                      ({selectedService.duration} min)
+                    </span>
+                  </h4>
+
                   {slotsLoading ? (
-                    <p>Loading slots...</p>
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', color: 'var(--gray)' }}>
+                      <div className="loading-spinner loading-spinner--sm" />
+                      <span>Checking availability…</span>
+                    </div>
                   ) : availableSlots.length === 0 ? (
-                    <p className="no-slots">No slots available for this date. Try another day.</p>
+                    <div className="booking-alert booking-alert--warning" style={{ marginTop: '0.5rem' }}>
+                      No available slots for this date.
+                    </div>
                   ) : (
                     <div className="slots-grid">
                       {availableSlots.map((slot, index) => (
                         <button
                           key={index}
-                          className={`slot-btn ${selectedSlot === slot ? 'selected' : ''}`}
-                          onClick={() => setSelectedSlot(slot)}
+                          className={`slot-btn${selectedSlot === slot ? ' selected' : ''}`}
+                          onClick={() => {
+                            setSelectedSlot(slot);
+                            setBookingError(null);
+                          }}
+                          type="button"
                         >
-                          {slot.startTime} - {slot.endTime}
+                          <span className="slot-time">{to12h(slot.startTime)}</span>
+                          <span className="slot-end">– {to12h(slot.endTime)}</span>
                         </button>
                       ))}
                     </div>
@@ -274,59 +506,80 @@ const BookingPage = () => {
                 </div>
               )}
             </div>
-          )}
 
-          {/* STEP 4: CONFIRMATION SUMMARY */}
-          {step === 4 && (
-            <div className="step-content summary-content">
-              <h3>Booking Summary</h3>
-              <div className="summary-card">
-                <div className="summary-row">
-                  <span>Service:</span>
-                  <strong>{selectedService.serviceName} (₹{selectedService.price})</strong>
-                </div>
-                <div className="summary-row">
-                  <span>Vehicle:</span>
-                  <strong>{selectedVehicle.brand} {selectedVehicle.model} ({selectedVehicle.vehicleNumber})</strong>
-                </div>
-                <div className="summary-row">
-                  <span>Date:</span>
-                  <strong>{selectedDate}</strong>
-                </div>
-                <div className="summary-row">
-                  <span>Time:</span>
-                  <strong>{selectedSlot.startTime} - {selectedSlot.endTime}</strong>
-                </div>
-                <div className="summary-total">
-                  <span>Total Amount to Pay:</span>
-                  <h2>₹{selectedService.price}</h2>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Navigation Buttons */}
-          <div className="step-navigation">
-            {step > 1 && (
-              <button className="btn btn-outline" onClick={() => setStep(step - 1)} disabled={isSubmitting}>
-                Back
-              </button>
-            )}
-            
-            {step < 4 ? (
-              <button className="btn btn-primary" onClick={handleNextStep}>
-                Next Step
-              </button>
-            ) : (
-              <button className="btn btn-primary" onClick={handleConfirmBooking} disabled={isSubmitting}>
-                {isSubmitting ? 'Initializing Payment...' : 'Pay Now & Confirm Booking'}
-              </button>
-            )}
           </div>
+
+          {/* ══ RIGHT COLUMN: SUMMARY ══ */}
+          <div className="booking-summary-col">
+            <div className="summary-card">
+              <h3>Booking Summary</h3>
+
+              <div className={`summary-row ${!selectedService ? 'summary-row--empty' : ''}`}>
+                <span>Service</span>
+                <strong>{selectedService ? selectedService.serviceName : 'Not selected'}</strong>
+              </div>
+              <div className={`summary-row ${!selectedService ? 'summary-row--empty' : ''}`}>
+                <span>Duration</span>
+                <strong>{selectedService ? `${selectedService.duration} minutes` : '—'}</strong>
+              </div>
+              <div className={`summary-row ${!selectedVehicle ? 'summary-row--empty' : ''}`}>
+                <span>Vehicle</span>
+                <strong>
+                  {selectedVehicle ? (
+                    <>
+                      {selectedVehicle.brand} {selectedVehicle.model}
+                      <span className="summary-plate">{selectedVehicle.vehicleNumber}</span>
+                    </>
+                  ) : 'Not selected'}
+                </strong>
+              </div>
+              <div className={`summary-row ${!selectedDate ? 'summary-row--empty' : ''}`}>
+                <span>Date</span>
+                <strong>{selectedDate ? formatDate(selectedDate) : 'Not selected'}</strong>
+              </div>
+              <div className={`summary-row ${!selectedSlot ? 'summary-row--empty' : ''}`}>
+                <span>Time</span>
+                <strong>
+                  {selectedSlot
+                    ? `${to12h(selectedSlot.startTime)} – ${to12h(selectedSlot.endTime)}`
+                    : 'Not selected'}
+                </strong>
+              </div>
+
+              <div className="summary-total">
+                <span>Total Amount</span>
+                <h2>{selectedService ? `₹${selectedService.price}` : '₹0'}</h2>
+              </div>
+
+              <button
+                className="btn btn-primary btn-confirm"
+                onClick={handleConfirmBookingClick}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <span className="btn-loading">
+                    <div className="loading-spinner loading-spinner--xs" /> Processing…
+                  </span>
+                ) : (
+                  '💳 Pay Now & Confirm'
+                )}
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
       
-      <Footer />
+      <ConfirmModal 
+        isOpen={showPaymentModal}
+        title="Confirm Payment"
+        message="Do you want to proceed with the payment?"
+        confirmText="Proceed"
+        cancelText="Cancel"
+        type="primary"
+        onConfirm={handleConfirmBooking}
+        onCancel={() => setShowPaymentModal(false)}
+      />
     </div>
   );
 };

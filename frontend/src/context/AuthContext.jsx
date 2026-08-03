@@ -4,15 +4,18 @@ import { getMe } from '../services/api';
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+  const isAdminPath = window.location.pathname.startsWith('/admin');
+  const tokenKey = isAdminPath ? 'adminToken' : 'token';
+
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token') || null);
-  const [loading, setLoading] = useState(true); // Loading state for session check
+  const [token, setToken] = useState(localStorage.getItem(tokenKey) || null);
+  const [loading, setLoading] = useState(true);
 
   // Check existing session on page load
   useEffect(() => {
     const checkSession = async () => {
       if (token) {
-        localStorage.setItem('token', token);
+        localStorage.setItem(tokenKey, token);
         try {
           // Fetch user profile to verify token is still valid
           const userData = await getMe();
@@ -22,24 +25,24 @@ export const AuthProvider = ({ children }) => {
           logout();
         }
       } else {
-        localStorage.removeItem('token');
+        localStorage.removeItem(tokenKey);
       }
       setLoading(false); // Finished checking
     };
 
     checkSession();
-  }, [token]);
+  }, [token, tokenKey]);
 
   const login = (userData, userToken) => {
     setUser(userData);
     setToken(userToken);
-    localStorage.setItem('token', userToken);
+    localStorage.setItem(tokenKey, userToken);
   };
 
   const logout = () => {
     setUser(null);
     setToken(null);
-    localStorage.removeItem('token');
+    localStorage.removeItem(tokenKey);
   };
 
   return (

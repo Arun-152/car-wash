@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/common/Navbar';
 import Footer from '../../components/common/Footer';
-import { getBookingById, cancelBooking } from '../../services/api';
+import { getBookingById, requestCancellation } from '../../services/api';
+import ConfirmModal from '../../components/common/ConfirmModal';
+import { toast } from 'react-toastify';
 import './MyBookingsDetailsPage.css';
 
 const MyBookingsDetailsPage = () => {
@@ -12,6 +14,8 @@ const MyBookingsDetailsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [cancelError, setCancelError] = useState(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
 
   const fetchBooking = async () => {
     try {
@@ -29,25 +33,28 @@ const MyBookingsDetailsPage = () => {
   }, [id]);
 
   const handleCancel = async () => {
-    if (window.confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
-      setCancelError(null);
-      try {
-        await cancelBooking(id);
-        fetchBooking(); // Refresh data to show cancelled status
-        alert('Booking cancelled successfully.');
-      } catch (err) {
-        setCancelError(err.response?.data?.message || 'Failed to cancel booking');
-      }
+    setCancelError(null);
+    try {
+      await requestCancellation(id, cancelReason);
+      setShowCancelModal(false);
+      fetchBooking(); // Refresh data to show requested status
+      toast.success('Booking cancelled successfully.');
+    } catch (err) {
+      toast.error('Cancel failed.');
+      setCancelError(err.response?.data?.message || 'Failed to request cancellation');
     }
   };
 
-  if (loading) return <div><Navbar /><div className="container" style={{padding:'4rem'}}>Loading...</div><Footer /></div>;
-  if (error || !booking) return <div><Navbar /><div className="container" style={{padding:'4rem'}}>{error}</div><Footer /></div>;
+  if (loading) return <div><div className="container" style={{ padding: '4rem' }}>Loading...</div></div>;
+  if (error || !booking) return <div><div className="container" style={{ padding: '4rem' }}>{error}</div></div>;
+
+  const bookingDateTimeStr = `${new Date(booking.bookingDate).toISOString().split('T')[0]}T${booking.startTime}:00`;
+  const bookingDateTime = new Date(bookingDateTimeStr);
+  const diffInHours = (bookingDateTime.getTime() - Date.now()) / (1000 * 60 * 60);
+  const isCancelExpired = diffInHours < 1;
 
   return (
     <div className="page-wrapper bg-light">
-      <Navbar />
-      
       <div className="container booking-details-container">
         <div className="details-header">
           <Link to="/my-bookings" className="back-link">← Back to My Bookings</Link>
@@ -56,15 +63,18 @@ const MyBookingsDetailsPage = () => {
 
         {cancelError && <div className="error-message">{cancelError}</div>}
 
-        <div className="booking-details-card card" style={{padding: '2rem'}}>
+        <div className="booking-details-card card" style={{ padding: '2rem' }}>
           <div className="card-top">
             <div className="code-block">
               <span>Booking Code</span>
               <h3>{booking.bookingCode}</h3>
             </div>
             <div className="status-block">
-              <span className={`status-badge badge-${booking.bookingStatus === 'cancelled' ? 'danger' : booking.bookingStatus === 'completed' ? 'success' : 'info'}`}>
-                {booking.bookingStatus}
+              <span className={`status-badge badge-${booking.bookingStatus === 'cancelled' ? 'danger' :
+                  booking.bookingStatus === 'completed' ? 'success' :
+                    booking.bookingStatus === 'cancellation-requested' ? 'warning' : 'info'
+                }`}>
+                {booking.bookingStatus === 'cancellation-requested' ? 'Cancellation Requested' : booking.bookingStatus}
               </span>
             </div>
           </div>
@@ -96,17 +106,55 @@ const MyBookingsDetailsPage = () => {
             </div>
           </div>
 
+          <div className="cancellation-policy" style={{ background: '#fffbeb', border: '1px solid #fef3c7', padding: '1.5rem', borderRadius: 'var(--radius-md)', marginBottom: '2rem' }}>
+            <h4 style={{ color: '#b45309', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              ⚠️ Cancellation Policy
+            </h4>
+            <ul style={{ color: '#92400e', margin: 0, paddingLeft: '1.5rem', fontSize: '0.875rem', lineHeight: '1.5' }}>
+              <li>Cancellation requests are accepted only up to 1 hour before your scheduled appointment.</li>
+              <li>After that time, cancellation and refunds are not available.</li>
+              <li>Refunds are processed only after Admin approval and will be credited to your Wallet.</li>
+            </ul>
+          </div>
+
           <div className="card-actions">
             {(booking.bookingStatus === 'pending' || booking.bookingStatus === 'confirmed') && (
-              <button className="btn btn-danger" onClick={handleCancel}>
-                Cancel Booking
-              </button>
+              isCancelExpired ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                  <button className="btn btn-danger" disabled style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                    Request Cancellation
+                  </button>
+                  <span style={{ fontSize: '0.875rem', color: 'var(--danger)', marginTop: '0.5rem' }}>
+                    Cancellation period has expired.
+                  </span>
+                </div>
+              ) : (
+                <button className="btn btn-danger" onClick={() => setShowCancelModal(true)}>
+                  Request Cancellation
+                </button>
+              )
             )}
           </div>
         </div>
       </div>
 
-      <Footer />
+      <ConfirmModal 
+        isOpen={showCancelModal}
+        title="Request Cancellation"
+        message="Please provide a reason for cancelling this booking."
+        confirmText="Submit Request"
+        cancelText="Keep Booking"
+        type="danger"
+        onConfirm={handleCancel}
+        onCancel={() => setShowCancelModal(false)}
+      >
+        <textarea
+          value={cancelReason}
+          onChange={(e) => setCancelReason(e.target.value)}
+          placeholder="Reason for cancellation (optional)"
+          style={{ width: '100%', minHeight: '100px', marginTop: '1rem', padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--border-light)' }}
+        />
+      </ConfirmModal>
     </div>
   );
 };

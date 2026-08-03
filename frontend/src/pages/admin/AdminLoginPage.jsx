@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { loginUser } from '../../services/api';
 import Navbar from '../../components/common/Navbar';
 import Footer from '../../components/common/Footer';
+import { toast } from 'react-toastify';
 
 const AdminLoginPage = () => {
   const [email, setEmail] = useState('');
@@ -34,6 +35,7 @@ const AdminLoginPage = () => {
         return;
       }
       login(data, data.token);
+      toast.success('Login successful! Welcome back.');
       navigate('/admin/dashboard');
     } catch (err) {
       console.log("login error",err);

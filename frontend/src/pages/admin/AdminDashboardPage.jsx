@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getAdminDashboardStats } from '../../services/api';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const AdminDashboardPage = () => {
   const [stats, setStats] = useState(null);
@@ -29,67 +30,53 @@ const AdminDashboardPage = () => {
         <p>Welcome to the Shop Management Portal.</p>
       </div>
 
-      <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:'1.5rem', marginBottom:'2rem'}}>
-        <div className="card" style={{borderTop:'4px solid #3b82f6', padding:'1.5rem'}}>
-          <h3 style={{color:'var(--gray)', fontSize:'0.875rem', textTransform:'uppercase'}}>Total Customers</h3>
-          <p style={{fontSize:'2rem', fontWeight:700, margin:0}}>{stats.totalCustomers}</p>
+
+
+      <div className="card" style={{ padding: 0 }}>
+        <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-light)' }}>
+          <h3 style={{ margin: 0 }}>Monthly Booking Trend</h3>
         </div>
-        <div className="card" style={{borderTop:'4px solid #8b5cf6', padding:'1.5rem'}}>
-          <h3 style={{color:'var(--gray)', fontSize:'0.875rem', textTransform:'uppercase'}}>Total Bookings</h3>
-          <p style={{fontSize:'2rem', fontWeight:700, margin:0}}>{stats.totalBookings}</p>
-        </div>
-        <div className="card" style={{borderTop:'4px solid #f59e0b', padding:'1.5rem'}}>
-          <h3 style={{color:'var(--gray)', fontSize:'0.875rem', textTransform:'uppercase'}}>Completed Washes</h3>
-          <p style={{fontSize:'2rem', fontWeight:700, margin:0}}>{stats.completedWashes}</p>
-        </div>
-        <div className="card" style={{borderTop:'4px solid #10b981', padding:'1.5rem'}}>
-          <h3 style={{color:'var(--gray)', fontSize:'0.875rem', textTransform:'uppercase'}}>Today's Bookings</h3>
-          <p style={{fontSize:'2rem', fontWeight:700, margin:0}}>{stats.todaysBookings}</p>
-        </div>
-        <div className="card" style={{borderTop:'4px solid #dc2626', padding:'1.5rem'}}>
-          <h3 style={{color:'var(--gray)', fontSize:'0.875rem', textTransform:'uppercase'}}>Total Revenue</h3>
-          <p style={{fontSize:'2rem', fontWeight:700, margin:0}}>₹{stats.totalRevenue}</p>
+        <div style={{ padding: '2rem', height: '400px' }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={stats.monthlyChartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+              <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#6b7280' }} dy={10} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280' }} dx={-10} />
+              <Tooltip
+                cursor={{ fill: '#f3f4f6', stroke: '#e5e7eb', strokeWidth: 1 }}
+                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+              />
+              <Line type="monotone" dataKey="count" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#3b82f6' }} activeDot={{ r: 6 }} name="Completed Bookings" />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       </div>
-
-      <div className="card" style={{padding:0}}>
-        <div style={{padding:'1.5rem', borderBottom:'1px solid var(--border-light)'}}>
-          <h3 style={{margin:0}}>Recent Bookings</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+        <div className="card" style={{ borderTop: '4px solid #3b82f6', padding: '1.5rem' }}>
+          <h3 style={{ color: 'var(--gray)', fontSize: '0.875rem', textTransform: 'uppercase' }}>Total Bookings</h3>
+          <p style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>{stats.totalBookings}</p>
         </div>
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Customer</th>
-              <th>Service</th>
-              <th>Amount</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {stats.recentBookings.length === 0 ? (
-              <tr><td colSpan="5" style={{textAlign:'center', padding: '2rem'}}>No recent bookings</td></tr>
-            ) : (
-              stats.recentBookings.map(b => (
-                <tr key={b._id}>
-                  <td>{new Date(b.createdAt).toLocaleDateString()}</td>
-                  <td>{b.userId?.name}</td>
-                  <td>{b.serviceId?.serviceName || 'N/A'}</td>
-                  <td>₹{b.totalAmount}</td>
-                  <td>
-                    <span className={`badge ${
-                      b.bookingStatus === 'completed' ? 'badge-success' : 
-                      b.bookingStatus === 'cancelled' ? 'badge-danger' : 
-                      'badge-warning'
-                    }`}>
-                      {b.bookingStatus}
-                    </span>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+        <div className="card" style={{ borderTop: '4px solid #10b981', padding: '1.5rem' }}>
+          <h3 style={{ color: 'var(--gray)', fontSize: '0.875rem', textTransform: 'uppercase' }}>Today's Bookings</h3>
+          <p style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>{stats.todaysBookings}</p>
+        </div>
+
+        <div className="card" style={{ borderTop: '4px solid #8b5cf6', padding: '1.5rem' }}>
+          <h3 style={{ color: 'var(--gray)', fontSize: '0.875rem', textTransform: 'uppercase' }}>Completed Bookings</h3>
+          <p style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>{stats.completedBookings}</p>
+        </div>
+        <div className="card" style={{ borderTop: '4px solid #ef4444', padding: '1.5rem' }}>
+          <h3 style={{ color: 'var(--gray)', fontSize: '0.875rem', textTransform: 'uppercase' }}>Cancelled Bookings</h3>
+          <p style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>{stats.cancelledBookings}</p>
+        </div>
+        <div className="card" style={{ borderTop: '4px solid #f59e0b', padding: '1.5rem' }}>
+          <h3 style={{ color: 'var(--gray)', fontSize: '0.875rem', textTransform: 'uppercase' }}>Total Customers</h3>
+          <p style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>{stats.totalCustomers}</p>
+        </div>
+        <div className="card" style={{ borderTop: '4px solid #14b8a6', padding: '1.5rem' }}>
+          <h3 style={{ color: 'var(--gray)', fontSize: '0.875rem', textTransform: 'uppercase' }}>Total Revenue</h3>
+          <p style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>₹{stats.totalRevenue}</p>
+        </div>
       </div>
     </div>
   );

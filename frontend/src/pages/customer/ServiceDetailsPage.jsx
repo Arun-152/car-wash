@@ -30,31 +30,22 @@ const ServiceDetailsPage = () => {
 
   if (loading) {
     return (
-      <div className="homepage-wrapper">
-        <Navbar />
-        <div className="container" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
-          Loading service details...
-        </div>
-        <Footer />
+      <div className="container" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+        Loading service details...
       </div>
     );
   }
 
   if (error || !service) {
     return (
-      <div className="homepage-wrapper">
-        <Navbar />
-        <div className="container" style={{ padding: '4rem 2rem', textAlign: 'center', color: 'red' }}>
-          {error || 'Service not found'}
-        </div>
-        <Footer />
+      <div className="container" style={{ padding: '4rem 2rem', textAlign: 'center', color: 'red' }}>
+        {error || 'Service not found'}
       </div>
     );
   }
 
   return (
     <div className="homepage-wrapper">
-      <Navbar />
       
       <section className="section bg-light" style={{ minHeight: '60vh', display: 'flex', alignItems: 'center' }}>
         <div className="container">
@@ -76,9 +67,28 @@ const ServiceDetailsPage = () => {
                 </span>
               </div>
               
-              <p style={{ fontSize: '1.125rem', color: 'var(--gray)', lineHeight: 1.8, marginBottom: '2rem', whiteSpace: 'pre-wrap' }}>
-                {service.description}
-              </p>
+              <div style={{ marginBottom: '2.5rem' }}>
+                <h3 style={{ fontSize: '1.5rem', color: 'var(--dark)', marginBottom: '1rem', borderBottom: '2px solid var(--primary)', display: 'inline-block', paddingBottom: '0.25rem' }}>
+                  Service Details & Benefits
+                </h3>
+                <p style={{ fontSize: '1.125rem', color: 'var(--gray)', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
+                  {service.description}
+                </p>
+                <ul style={{ marginTop: '1.5rem', listStyle: 'none', padding: 0 }}>
+                  <li style={{ display: 'flex', alignItems: 'center', marginBottom: '0.75rem', color: 'var(--dark)' }}>
+                    <span style={{ color: 'var(--primary)', marginRight: '10px', fontSize: '1.25rem' }}>✓</span>
+                    Professional-grade equipment and products
+                  </li>
+                  <li style={{ display: 'flex', alignItems: 'center', marginBottom: '0.75rem', color: 'var(--dark)' }}>
+                    <span style={{ color: 'var(--primary)', marginRight: '10px', fontSize: '1.25rem' }}>✓</span>
+                    Trained and experienced detailing staff
+                  </li>
+                  <li style={{ display: 'flex', alignItems: 'center', marginBottom: '0.75rem', color: 'var(--dark)' }}>
+                    <span style={{ color: 'var(--primary)', marginRight: '10px', fontSize: '1.25rem' }}>✓</span>
+                    Guaranteed customer satisfaction
+                  </li>
+                </ul>
+              </div>
               
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', marginBottom: '2.5rem', padding: '1.5rem', background: 'var(--light)', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
                 <div>
@@ -118,8 +128,6 @@ const ServiceDetailsPage = () => {
           </div>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 };

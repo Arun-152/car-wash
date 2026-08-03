@@ -24,7 +24,8 @@ const HomePage = () => {
         setLoading(true);
         const shopData = await getShopSettings();
         setShop(shopData);
-        const servicesData = await getServices();
+        // Fetch only the latest 3 services for the Home page
+        const servicesData = await getServices({ limit: 3 });
         setServices(servicesData.filter(s => s.isActive));
       } catch (err) {
         console.error('Error fetching home data:', err);
@@ -38,12 +39,8 @@ const HomePage = () => {
 
   if (loading) {
     return (
-      <div className="homepage-wrapper">
-        <Navbar />
-        <div className="container" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
-          Loading...
-        </div>
-        <Footer />
+      <div className="container" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+        Loading...
       </div>
     );
   }
@@ -64,8 +61,7 @@ const HomePage = () => {
 
   return (
     <div className="homepage-wrapper">
-      <Navbar />
-      
+
       {/* Hero Section */}
       <section className="hero-section">
         <div className="container hero-content text-center">
@@ -82,11 +78,11 @@ const HomePage = () => {
             <h2 className="section-title">Our Car Care Services</h2>
             <p className="section-subtitle">Professional cleaning, protection, and detailing services for your vehicle.</p>
           </div>
-          
+
           <div className="services-grid">
             {services.map((service) => (
-              <div 
-                key={service._id} 
+              <div
+                key={service._id}
                 className="service-card card"
                 onClick={() => navigate(`/services/${service._id}`)}
                 style={{ cursor: 'pointer' }}
@@ -99,7 +95,7 @@ const HomePage = () => {
                 <div className="service-content">
                   <h3>{service.serviceName}</h3>
                   <p className="service-desc" style={{ whiteSpace: 'pre-wrap' }}>{service.description}</p>
-                  
+
                   <div className="service-meta">
                     <div className="meta-item">
                       <span className="meta-label">Duration:</span>
@@ -110,8 +106,8 @@ const HomePage = () => {
                       <span className="meta-price">₹{service.price}</span>
                     </div>
                   </div>
-                  
-                  <button 
+
+                  <button
                     className="btn btn-primary w-100 mt-3"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -126,6 +122,10 @@ const HomePage = () => {
             {services.length === 0 && (
               <p className="text-center w-100" style={{ color: 'var(--gray)' }}>No active services available at the moment.</p>
             )}
+          </div>
+          
+          <div className="text-center" style={{ marginTop: '2.5rem' }}>
+            <button className="btn btn-outline" onClick={() => navigate('/services')}>See All Services</button>
           </div>
         </div>
       </section>
@@ -240,8 +240,6 @@ const HomePage = () => {
           </div>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 };

@@ -105,12 +105,12 @@
 .profile-toggle {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   background: none;
   border: none;
   cursor: pointer;
   padding: 6px 12px;
-  border-radius: 6px;
+  border-radius: 20px;
   transition: background-color 0.2s ease;
 }
 
@@ -122,11 +122,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  background-color: #e5e7eb;
-  color: #4b5563;
+  width: 38px;
+  height: 38px;
+  background-color: var(--primary-light);
+  color: var(--primary);
   border-radius: 50%;
+  font-weight: bold;
 }
 
 .profile-name {
@@ -262,7 +263,8 @@
     transition: background-color 0.2s ease;
   }
 
-  .mobile-link:hover, .mobile-link.active {
+  .mobile-link:hover,
+  .mobile-link.active {
     background-color: #f3f4f6;
     color: var(--primary, #0056b3);
   }
@@ -277,7 +279,7 @@
     flex-direction: column;
     gap: 12px;
   }
-  
+
   .mobile-auth-buttons .btn {
     width: 100%;
     text-align: center;

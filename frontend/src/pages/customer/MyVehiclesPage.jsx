@@ -3,6 +3,8 @@ import { Edit2, Trash2, Car } from 'lucide-react';
 import Navbar from '../../components/common/Navbar';
 import Footer from '../../components/common/Footer';
 import { getMyVehicles, addVehicle, updateVehicle, deleteVehicle } from '../../services/api';
+import ConfirmModal from '../../components/common/ConfirmModal';
+import { toast } from 'react-toastify';
 import './MyVehiclesPage.css';
 
 const MyVehiclesPage = () => {
@@ -11,6 +13,11 @@ const MyVehiclesPage = () => {
   const [error, setError] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteVehicleId, setDeleteVehicleId] = useState(null);
 
   const [formData, setFormData] = useState({
     vehicleNumber: '',
@@ -76,33 +83,57 @@ const MyVehiclesPage = () => {
 
     try {
       if (editingId) {
-        await updateVehicle(editingId, formData);
+        setShowUpdateModal(true);
       } else {
-        await addVehicle(formData);
+        setShowAddModal(true);
       }
-      setIsFormOpen(false);
-      fetchVehicles();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to save vehicle');
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this vehicle?')) {
-      try {
-        await deleteVehicle(id);
-        fetchVehicles();
-      } catch (err) {
-        alert(err.response?.data?.message || 'Failed to delete vehicle');
+  const executeSubmit = async () => {
+    try {
+      if (editingId) {
+        await updateVehicle(editingId, formData);
+        toast.success('Vehicle updated successfully.');
+      } else {
+        await addVehicle(formData);
+        toast.success('Vehicle added successfully.');
       }
+      setIsFormOpen(false);
+      setShowUpdateModal(false);
+      setShowAddModal(false);
+      fetchVehicles();
+    } catch (err) {
+      if (editingId) toast.error('Update failed.');
+      setError(err.response?.data?.message || 'Failed to save vehicle');
+      setShowUpdateModal(false);
+      setShowAddModal(false);
+    }
+  };
+
+  const handleDelete = (id) => {
+    setDeleteVehicleId(id);
+    setShowDeleteModal(true);
+  };
+
+  const executeDelete = async () => {
+    try {
+      await deleteVehicle(deleteVehicleId);
+      toast.success('Vehicle deleted successfully.');
+      fetchVehicles();
+    } catch (err) {
+      toast.error('Delete failed.');
+    } finally {
+      setShowDeleteModal(false);
+      setDeleteVehicleId(null);
     }
   };
 
   return (
     <div className="page-wrapper bg-light">
-      <Navbar />
-      
-      <div className="container vehicles-container">
+      <div className="container" style={{ padding: '2rem 1rem' }}>
         <div className="vehicles-header">
           <h2>My Vehicles</h2>
           <button className="btn btn-primary" onClick={() => handleOpenForm()}>
@@ -202,7 +233,41 @@ const MyVehiclesPage = () => {
         )}
       </div>
 
-      <Footer />
+      <ConfirmModal 
+        isOpen={showUpdateModal}
+        title="Update Vehicle"
+        message="Do you want to save these changes?"
+        confirmText="Update"
+        cancelText="Cancel"
+        type="primary"
+        onConfirm={executeSubmit}
+        onCancel={() => setShowUpdateModal(false)}
+      />
+
+      <ConfirmModal 
+        isOpen={showAddModal}
+        title="Add Vehicle"
+        message="Do you want to add this vehicle?"
+        confirmText="Add Vehicle"
+        cancelText="Cancel"
+        type="primary"
+        onConfirm={executeSubmit}
+        onCancel={() => setShowAddModal(false)}
+      />
+
+      <ConfirmModal 
+        isOpen={showDeleteModal}
+        title="Delete Vehicle"
+        message="Are you sure you want to delete this vehicle?"
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+        onConfirm={executeDelete}
+        onCancel={() => {
+          setShowDeleteModal(false);
+          setDeleteVehicleId(null);
+        }}
+      />
     </div>
   );
 };

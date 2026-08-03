@@ -5,14 +5,23 @@ const availabilitySchema = new mongoose.Schema(
     workingDays: {
       type: [String],
       enum: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-      default: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+      default: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
     },
-    breakTimes: [{
-      startTime: String, // e.g. "12:00"
-      endTime: String    // e.g. "13:00"
-    }],
-    blockedDates: [{ type: Date }],
-    maxSimultaneousBookings: { type: Number, default: 1 }
+    breakTimes: [
+      {
+        startTime: String, // "HH:MM"
+        endTime: String,   // "HH:MM"
+      },
+    ],
+    // Each entry now stores the date AND an optional reason (Holiday, Maintenance, etc.)
+    blockedDates: [
+      {
+        date: { type: Date },
+        reason: { type: String, default: '' },
+      },
+    ],
+    maxSimultaneousBookings: { type: Number, default: 1 },
+    ceramicCoatingDailyCapacity: { type: Number, default: 2 },
   },
   { timestamps: true }
 );

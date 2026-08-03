@@ -6,7 +6,9 @@ const API = axios.create({
 
 // Request interceptor to attach JWT token if present
 API.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const isAdminPath = window.location.pathname.startsWith('/admin');
+  const tokenKey = isAdminPath ? 'adminToken' : 'token';
+  const token = localStorage.getItem(tokenKey);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -19,6 +21,21 @@ export const loginUser = async (credentials) => {
   return data;
 };
 
+export const forgotPasswordAPI = async (email) => {
+  const { data } = await API.post('/auth/forgot-password', { email });
+  return data;
+};
+
+export const verifyOTPAPI = async (otpData) => {
+  const { data } = await API.post('/auth/verify-otp', otpData);
+  return data;
+};
+
+export const resetPasswordAPI = async (resetData) => {
+  const { data } = await API.put('/auth/reset-password', resetData);
+  return data;
+};
+
 export const registerCustomer = async (userData) => {
   const { data } = await API.post('/auth/register', userData);
   return data;
@@ -26,6 +43,21 @@ export const registerCustomer = async (userData) => {
 
 export const getMe = async () => {
   const { data } = await API.get('/auth/me');
+  return data;
+};
+
+export const getWalletHistory = async (params = {}) => {
+  const { data } = await API.get('/auth/wallet/history', { params });
+  return data;
+};
+
+export const changePassword = async (passwordData) => {
+  const { data } = await API.put('/auth/change-password', passwordData);
+  return data;
+};
+
+export const updateProfile = async (profileData) => {
+  const { data } = await API.put('/auth/profile', profileData);
   return data;
 };
 
@@ -51,8 +83,8 @@ export const deleteVehicle = async (id) => {
 };
 
 // Booking API calls (Requires Auth)
-export const getAvailableSlots = async (date, duration) => {
-  const { data } = await API.get(`/bookings/slots?date=${date}&duration=${duration}`);
+export const getAvailableSlots = async (date, duration, serviceId) => {
+  const { data } = await API.get(`/bookings/slots?date=${date}&duration=${duration}&serviceId=${serviceId}`);
   return data;
 };
 
@@ -66,13 +98,13 @@ export const getBookingById = async (id) => {
   return data;
 };
 
-export const getMyBookings = async () => {
-  const { data } = await API.get('/bookings/my');
+export const getMyBookings = async (params = {}) => {
+  const { data } = await API.get('/bookings/my', { params });
   return data;
 };
 
-export const cancelBooking = async (id) => {
-  const { data } = await API.put(`/bookings/${id}/cancel`);
+export const requestCancellation = async (id, reason) => {
+  const { data } = await API.put(`/bookings/${id}/cancel-request`, { reason });
   return data;
 };
 
@@ -93,8 +125,14 @@ export const getShopSettings = async () => {
   return data;
 };
 
-export const getServices = async () => {
-  const { data } = await API.get('/admin/services');
+// Public availability — used by booking calendar to know working days & blocked dates
+export const getPublicAvailability = async () => {
+  const { data } = await API.get('/admin/availability');
+  return data;
+};
+
+export const getServices = async (params = {}) => {
+  const { data } = await API.get('/admin/services', { params });
   return data;
 };
 
@@ -109,8 +147,8 @@ export const getAdminDashboardStats = async () => {
   return data;
 };
 
-export const getCustomers = async () => {
-  const { data } = await API.get('/admin/users');
+export const getCustomers = async (params = {}) => {
+  const { data } = await API.get('/admin/users', { params });
   return data;
 };
 
@@ -149,13 +187,55 @@ export const deleteService = async (id) => {
   return data;
 };
 
-export const getAllBookings = async () => {
-  const { data } = await API.get('/admin/bookings');
+export const getAllBookings = async (params = {}) => {
+  const { data } = await API.get('/admin/bookings', { params });
   return data;
 };
 
 export const updateBookingStatusAdmin = async (id, status) => {
   const { data } = await API.put(`/admin/bookings/${id}/status`, { status });
+  return data;
+};
+
+export const approveCancellation = async (id) => {
+  const { data } = await API.put(`/admin/bookings/${id}/approve-cancel`);
+  return data;
+};
+
+export const rejectCancellation = async (id) => {
+  const { data } = await API.put(`/admin/bookings/${id}/reject-cancel`);
+  return data;
+};
+
+// Admin Slot Management
+export const getAdminDailySlots = async (params = {}) => {
+  const { data } = await API.get('/admin/slots/daily', { params });
+  return data;
+};
+
+export const blockAdminSlot = async (slotData) => {
+  const { data } = await API.post('/admin/slots/block', slotData);
+  return data;
+};
+
+export const editAdminSlotCapacity = async (slotData) => {
+  const { data } = await API.post('/admin/slots/edit-capacity', slotData);
+  return data;
+};
+
+export const removeAdminSlotOverride = async (id) => {
+  const { data } = await API.delete(`/admin/slots/${id}`);
+  return data;
+};
+
+export const createAdminManualBooking = async (bookingData) => {
+  const { data } = await API.post('/admin/bookings/manual', bookingData);
+  return data;
+};
+
+// ── Reports ─────────────────────────────────────────────────────────────────
+export const getAdminReports = async (params) => {
+  const { data } = await API.get('/admin/reports', { params });
   return data;
 };
 

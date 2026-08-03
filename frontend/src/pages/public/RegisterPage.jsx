@@ -48,10 +48,8 @@ const RegisterPage = () => {
   };
 
   return (
-    <>
-      <Navbar />
-      <div className="container" style={{ minHeight: 'calc(100vh - 70px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 0' }}>
-        <div className="card" style={{ width: '100%', maxWidth: '450px', padding: '2.5rem' }}>
+    <div className="container" style={{ minHeight: 'calc(100vh - 70px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 0' }}>
+      <div className="card" style={{ width: '100%', maxWidth: '450px', padding: '2.5rem' }}>
           <h2 style={{ textAlign: 'center', marginBottom: '1.5rem' }}>Customer Registration</h2>
         {error && <div className="error-message">{error}</div>}
         <form onSubmit={handleSubmit}>
@@ -79,8 +77,7 @@ const RegisterPage = () => {
           <p>Already have an account? <Link to="/login" style={{ fontWeight: '500' }}>Login here</Link></p>
         </div>
       </div>
-      </div>
-    </>
+    </div>
   );
 };
 

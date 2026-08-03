@@ -28,11 +28,12 @@ const createOrder = async (req, res) => {
 
     // Amount in paise (multiply by 100)
     const options = {
-      amount: booking.totalAmount * 100, 
+      amount: Math.round(booking.totalAmount * 100),
       currency: "INR",
       receipt: `receipt_order_${booking._id}`,
     };
 
+    console.log("BACKEND KEY:", process.env.RAZORPAY_KEY_ID);
     const order = await razorpay.orders.create(options);
 
     // Create pending payment record
@@ -76,7 +77,7 @@ const verifyPayment = async (req, res) => {
       // Update Payment Record
       await Payment.findOneAndUpdate(
         { razorpayOrderId: razorpay_order_id },
-        { 
+        {
           paymentStatus: 'paid',
           razorpayPaymentId: razorpay_payment_id,
           transactionId: razorpay_payment_id
@@ -85,7 +86,8 @@ const verifyPayment = async (req, res) => {
 
       // Update Booking Record
       await Booking.findByIdAndUpdate(bookingId, {
-        paymentStatus: 'paid'
+        paymentStatus: 'paid',
+        bookingStatus: 'confirmed'
       });
 
       return res.json({ message: "Payment verified successfully", success: true });
@@ -95,7 +97,7 @@ const verifyPayment = async (req, res) => {
         { razorpayOrderId: razorpay_order_id },
         { paymentStatus: 'failed' }
       );
-      
+
       await Booking.findByIdAndUpdate(bookingId, {
         paymentStatus: 'failed'
       });

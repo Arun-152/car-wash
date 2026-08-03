@@ -2,6 +2,8 @@ import React, { useContext, useState, useRef, useEffect } from 'react';
 import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { Droplets, Menu, X, ChevronDown, User, Car, Calendar, LogOut } from 'lucide-react';
+import { toast } from 'react-toastify';
+import ConfirmModal from './ConfirmModal';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -10,12 +12,19 @@ const Navbar = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const dropdownRef = useRef(null);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogoutClick = () => {
     setIsDropdownOpen(false);
     setIsMenuOpen(false);
+    setShowLogoutModal(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    logout();
+    setShowLogoutModal(false);
+    toast.success('Logged out successfully.');
     navigate('/login');
   };
 
@@ -43,16 +52,16 @@ const Navbar = () => {
       <div className="navbar-container">
         {/* Brand Logo */}
         <Link to="/" className="navbar-brand">
-          <Droplets className="brand-icon" size={24} strokeWidth={2.5} /> 
+          <Droplets className="brand-icon" size={24} strokeWidth={2.5} />
           <span className="brand-text">WashBooking</span>
         </Link>
-        
+
         {/* Desktop Navigation Center */}
         <nav className="navbar-nav desktop-only">
-          <NavLink to="/" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>Home</NavLink>
-          <a href="/#services" className="nav-link">Services</a>
+          <NavLink to="/" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>Home</NavLink>
+          <NavLink to="/services" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>Services</NavLink>
           {user && user.role === 'customer' && (
-            <NavLink to="/my-bookings" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>My Bookings</NavLink>
+            <NavLink to="/my-bookings" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>My Bookings</NavLink>
           )}
           <NavLink to="/book" className="btn btn-primary" style={{ marginLeft: '8px' }}>Book a Wash</NavLink>
         </nav>
@@ -65,13 +74,13 @@ const Navbar = () => {
                 <Link to="/admin/dashboard" className="btn btn-primary">Admin Dashboard</Link>
               )}
               <div className="profile-dropdown-container" ref={dropdownRef}>
-                <button 
-                  className="profile-toggle" 
+                <button
+                  className="profile-toggle"
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   aria-expanded={isDropdownOpen}
                 >
                   <div className="profile-avatar">
-                    <User size={18} />
+                    <User size={20} />
                   </div>
                   <span className="profile-name">{user.name}</span>
                   <ChevronDown size={16} className={`dropdown-arrow ${isDropdownOpen ? 'open' : ''}`} />
@@ -82,18 +91,8 @@ const Navbar = () => {
                     <Link to="/profile" className="dropdown-item">
                       <User size={16} /> My Profile
                     </Link>
-                    {user.role === 'customer' && (
-                      <>
-                        <Link to="/my-vehicles" className="dropdown-item">
-                          <Car size={16} /> My Vehicles
-                        </Link>
-                        <Link to="/my-bookings" className="dropdown-item">
-                          <Calendar size={16} /> My Bookings
-                        </Link>
-                      </>
-                    )}
                     <div className="dropdown-divider"></div>
-                    <button onClick={handleLogout} className="dropdown-item text-danger">
+                    <button className="dropdown-item text-danger" onClick={handleLogoutClick}>
                       <LogOut size={16} /> Logout
                     </button>
                   </div>
@@ -109,8 +108,8 @@ const Navbar = () => {
         </div>
 
         {/* Mobile Menu Toggle */}
-        <button 
-          className="mobile-menu-toggle" 
+        <button
+          className="mobile-menu-toggle"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           aria-label="Toggle menu"
         >
@@ -121,16 +120,16 @@ const Navbar = () => {
       {/* Mobile Navigation Dropdown */}
       <div className={`mobile-nav ${isMenuOpen ? 'open' : ''}`}>
         <div className="mobile-nav-links">
-          <NavLink to="/" className={({isActive}) => isActive ? "mobile-link active" : "mobile-link"}>Home</NavLink>
-          <a href="/#services" className="mobile-link" onClick={() => setIsMenuOpen(false)}>Services</a>
+          <NavLink to="/" className={({ isActive }) => isActive ? "mobile-link active" : "mobile-link"} onClick={() => setIsMenuOpen(false)}>Home</NavLink>
+          <NavLink to="/services" className={({ isActive }) => isActive ? "mobile-link active" : "mobile-link"} onClick={() => setIsMenuOpen(false)}>Services</NavLink>
           {user && user.role === 'customer' && (
             <>
-              <NavLink to="/my-bookings" className={({isActive}) => isActive ? "mobile-link active" : "mobile-link"}>My Bookings</NavLink>
-              <NavLink to="/my-vehicles" className={({isActive}) => isActive ? "mobile-link active" : "mobile-link"}>My Vehicles</NavLink>
+              <NavLink to="/my-bookings" className={({ isActive }) => isActive ? "mobile-link active" : "mobile-link"}>My Bookings</NavLink>
+              <NavLink to="/my-vehicles" className={({ isActive }) => isActive ? "mobile-link active" : "mobile-link"}>My Vehicles</NavLink>
             </>
           )}
           {user && (
-            <NavLink to="/profile" className={({isActive}) => isActive ? "mobile-link active" : "mobile-link"}>Profile</NavLink>
+            <NavLink to="/profile" className={({ isActive }) => isActive ? "mobile-link active" : "mobile-link"}>Profile</NavLink>
           )}
 
           <NavLink to="/book" className="btn btn-primary" style={{ marginTop: '16px', display: 'block', textAlign: 'center' }}>Book a Wash</NavLink>
@@ -142,7 +141,7 @@ const Navbar = () => {
 
         <div className="mobile-nav-footer">
           {user ? (
-            <button onClick={handleLogout} className="btn btn-outline btn-block" style={{width: '100%'}}>
+            <button onClick={handleLogoutClick} className="btn btn-outline btn-block" style={{ width: '100%' }}>
               Logout
             </button>
           ) : (
@@ -153,6 +152,17 @@ const Navbar = () => {
           )}
         </div>
       </div>
+      
+      <ConfirmModal 
+        isOpen={showLogoutModal}
+        title="Logout"
+        message="Are you sure you want to logout?"
+        confirmText="Logout"
+        cancelText="Cancel"
+        type="danger"
+        onConfirm={handleLogoutConfirm}
+        onCancel={() => setShowLogoutModal(false)}
+      />
     </header>
   );
 };

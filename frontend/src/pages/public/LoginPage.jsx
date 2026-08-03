@@ -3,6 +3,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { loginUser } from '../../services/api';
 import Navbar from '../../components/common/Navbar';
+import { toast } from 'react-toastify';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -22,6 +23,7 @@ const LoginPage = () => {
     try {
       const data = await loginUser({ email, password });
       login(data, data.token);
+      toast.success('Login successful! Welcome back.');
       
       // Redirect based on role
       if (data.role === 'admin') navigate('/admin/dashboard');
@@ -34,10 +36,8 @@ const LoginPage = () => {
   };
 
   return (
-    <>
-      <Navbar />
-      <div className="container" style={{ minHeight: 'calc(100vh - 70px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="card" style={{ width: '100%', maxWidth: '400px', padding: '2.5rem' }}>
+    <div className="container" style={{ minHeight: 'calc(100vh - 70px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="card" style={{ width: '100%', maxWidth: '400px', padding: '2.5rem' }}>
         <h2 style={{ textAlign: 'center', marginBottom: '1.5rem' }}>Login</h2>
         {successMessage && <div className="success-message" style={{ color: 'green', marginBottom: '1rem', textAlign: 'center' }}>{successMessage}</div>}
         {error && <div className="error-message">{error}</div>}
@@ -52,8 +52,11 @@ const LoginPage = () => {
               required 
             />
           </div>
-          <div className="form-group">
-            <label>Password</label>
+          <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+            <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              Password
+              <Link to="/forgot-password" style={{ fontSize: '0.85rem', fontWeight: '500', color: 'var(--primary)' }}>Forgot Password?</Link>
+            </label>
             <input 
               type="password" 
               className="form-control"
@@ -70,9 +73,8 @@ const LoginPage = () => {
           <p style={{ marginBottom: '0.5rem' }}>Don't have an account? <Link to="/register" style={{ fontWeight: '500' }}>Register here</Link></p>
 
         </div>
-        </div>
       </div>
-    </>
+    </div>
   );
 };
 
