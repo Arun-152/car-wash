@@ -29,7 +29,6 @@ const HeroSection = () => {
               required
             />
           </div>
-          <button type="submit" className="btn btn-primary">Find Car Wash</button>
         </form>
       </div>
     </section>

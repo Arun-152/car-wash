@@ -108,8 +108,8 @@ const MyBookingsPage = () => {
             <h3>No {activeTab} bookings found</h3>
             <p style={{ color: 'var(--text-muted)' }}>You don't have any {activeTab} appointments at the moment.</p>
             {activeTab === 'all' && (
-              <Link to="/centers" className="btn btn-primary" style={{ marginTop: '1.5rem' }}>
-                Find a Car Wash
+              <Link to="/book" className="btn btn-primary" style={{ marginTop: '1.5rem' }}>
+                Book Now
               </Link>
             )}
           </div>
