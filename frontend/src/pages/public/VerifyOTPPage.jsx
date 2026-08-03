@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link, Navigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { verifyOTPAPI, forgotPasswordAPI } from '../../services/api';
+import './AuthPages.css';
 
 const VerifyOTPPage = () => {
   const navigate = useNavigate();
@@ -63,59 +64,64 @@ const VerifyOTPPage = () => {
   };
 
   return (
-    <div className="container" style={{ minHeight: 'calc(100vh - 70px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="card" style={{ width: '100%', maxWidth: '400px', padding: '2.5rem' }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '0.5rem' }}>Verify OTP</h2>
-        <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-          Please enter the 6-digit OTP sent to your email.
-        </p>
+    <div className="auth-page-wrapper">
+      <div className="auth-split-layout">
+        {/* Left Side Branding */}
+        <div className="auth-brand-side">
+          <h1>Security First</h1>
+          <p>We've sent a 6-digit code to your email. This helps us ensure it's really you.</p>
+        </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-            <label>OTP</label>
-            <input
-              type="text"
-              className="form-control"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              placeholder="Enter 6-digit OTP"
-              required
-            />
-          </div>
+        {/* Right Side Form */}
+        <div className="auth-form-side">
+          <div className="auth-form-container">
+            <div className="auth-header">
+              <h2>Verify OTP</h2>
+              <p>Please enter the 6-digit code sent to <strong>{email}</strong></p>
+            </div>
 
-          <button
-            type="submit"
-            className="btn btn-primary"
-            style={{ width: '100%', marginBottom: '1.5rem' }}
-            disabled={loading}
-          >
-            {loading ? 'Verifying...' : 'Verify OTP'}
-          </button>
+            <form className="auth-form" onSubmit={handleSubmit}>
+              <div className="auth-form-group">
+                <label className="auth-label">One-Time Password</label>
+                <input
+                  type="text"
+                  className="auth-input"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="Enter 6-digit OTP"
+                  required
+                />
+              </div>
 
-          <div style={{ textAlign: 'center', marginBottom: '1.5rem', minHeight: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {timer > 0 ? (
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.95rem', fontWeight: '500' }}>
-                Resend OTP in 00:{timer < 10 ? `0${timer}` : timer}
-              </span>
-            ) : (
               <button
-                type="button"
-                className="btn btn-outline"
-                style={{ width: '100%', borderColor: 'transparent', color: 'var(--primary)', fontWeight: '600' }}
-                onClick={handleResendOTP}
-                disabled={resending}
+                type="submit"
+                className="btn btn-primary auth-btn"
+                disabled={loading}
               >
-                {resending ? 'Sending...' : 'Resend OTP'}
+                {loading ? 'Verifying...' : 'Verify OTP'}
               </button>
-            )}
-          </div>
+            </form>
 
-          <div style={{ textAlign: 'center' }}>
-            <Link to="/forgot-password" className="btn btn-outline" style={{ width: '100%' }}>
-              Back
-            </Link>
+            <div className="auth-timer">
+              {timer > 0 ? (
+                <span>Resend code in 00:{timer < 10 ? `0${timer}` : timer}</span>
+              ) : (
+                <button
+                  type="button"
+                  className="resend-btn"
+                  onClick={handleResendOTP}
+                  disabled={resending}
+                >
+                  {resending ? 'Sending...' : 'Resend OTP'}
+                </button>
+              )}
+            </div>
+
+            <div className="auth-footer" style={{ marginTop: '1.5rem' }}>
+              <Link to="/forgot-password">Back to previous step</Link>
+            </div>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

@@ -5,9 +5,18 @@ import ConfirmModal from '../../components/common/ConfirmModal';
 import { toast } from 'react-toastify';
 import './AdminPages.css';
 
+const to12h = (timeStr) => {
+  if (!timeStr) return '';
+  const [h, m] = timeStr.split(':');
+  const hNum = parseInt(h, 10);
+  const suffix = hNum >= 12 ? 'PM' : 'AM';
+  const hours = hNum % 12 || 12;
+  return `${hours}:${m} ${suffix}`;
+};
+
 const AdminSettingsPage = () => {
   const [settings, setSettings] = useState({
-    businessName: '',
+    shopName: '',
     address: '',
     city: '',
     state: '',
@@ -17,12 +26,14 @@ const AdminSettingsPage = () => {
     description: '',
     openingTime: '09:00',
     closingTime: '18:00',
+    images: []
   });
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(true);
 
   // ── Availability state ──
   const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -43,6 +54,9 @@ const AdminSettingsPage = () => {
       const [shopData, avData] = await Promise.all([getShopSettings(), getAvailability()]);
       if (shopData) {
         setSettings({ ...settings, ...shopData });
+        if (shopData._id || shopData.shopName) {
+          setIsEditing(false);
+        }
       }
       if (avData) {
         setWorkingDays(avData.workingDays || []);
@@ -74,6 +88,17 @@ const AdminSettingsPage = () => {
     setSettings((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSettings(prev => ({ ...prev, images: [reader.result] }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmitClick = (e) => {
     e.preventDefault();
     setShowConfirmModal(true);
@@ -90,6 +115,7 @@ const AdminSettingsPage = () => {
       ]);
       toast.success('Shop settings updated successfully.');
       setMessage({ type: 'success', text: 'Shop settings and schedule updated successfully!' });
+      setIsEditing(false);
     } catch (err) {
       toast.error('Failed to update settings.');
       setMessage({ type: 'error', text: err.response?.data?.message || 'Failed to update settings' });
@@ -128,6 +154,91 @@ const AdminSettingsPage = () => {
       <h2>Shop Settings</h2>
       <p>Configure your shop details here. These details will be displayed to customers.</p>
       
+      {!isEditing ? (
+        <div className="admin-form card" style={{ padding: '2rem', maxWidth: '800px', marginTop: '1.5rem' }}>
+          <h3 style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--gray-light)', paddingBottom: '1rem', color: 'var(--dark)' }}>SHOP DETAILS</h3>
+          
+          {message && (
+            <div className={`alert ${message.type === 'success' ? 'alert-success' : 'alert-error'}`} style={{ marginBottom: '1.5rem' }}>
+              {message.text}
+            </div>
+          )}
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
+            <div>
+              <p style={{ color: 'var(--gray)', fontSize: '0.85rem', marginBottom: '0.25rem', textTransform: 'uppercase', fontWeight: 600 }}>Shop Name</p>
+              <p style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--dark)' }}>{settings.shopName || 'Not Set'}</p>
+            </div>
+            <div>
+              <p style={{ color: 'var(--gray)', fontSize: '0.85rem', marginBottom: '0.25rem', textTransform: 'uppercase', fontWeight: 600 }}>Phone</p>
+              <p style={{ fontSize: '1.05rem', fontWeight: 500, color: 'var(--dark)' }}>{settings.phone || 'Not Set'}</p>
+            </div>
+            <div>
+              <p style={{ color: 'var(--gray)', fontSize: '0.85rem', marginBottom: '0.25rem', textTransform: 'uppercase', fontWeight: 600 }}>Email</p>
+              <p style={{ fontSize: '1.05rem', fontWeight: 500, color: 'var(--dark)' }}>{settings.email || 'Not Set'}</p>
+            </div>
+            <div>
+              <p style={{ color: 'var(--gray)', fontSize: '0.85rem', marginBottom: '0.25rem', textTransform: 'uppercase', fontWeight: 600 }}>Working Hours</p>
+              <p style={{ fontSize: '1.05rem', fontWeight: 500, color: 'var(--dark)' }}>{to12h(settings.openingTime)} - {to12h(settings.closingTime)}</p>
+            </div>
+          </div>
+          
+          <div style={{ marginBottom: '1.5rem' }}>
+            <p style={{ color: 'var(--gray)', fontSize: '0.85rem', marginBottom: '0.25rem', textTransform: 'uppercase', fontWeight: 600 }}>Address</p>
+            <p style={{ fontSize: '1.05rem', fontWeight: 500, color: 'var(--dark)', lineHeight: 1.5 }}>
+              {settings.address}<br />
+              {settings.city ? `${settings.city}, ${settings.state} ${settings.zipCode}` : ''}
+            </p>
+          </div>
+          
+          {settings.images && settings.images.length > 0 && (
+            <div style={{ marginBottom: '2rem' }}>
+              <p style={{ color: 'var(--gray)', fontSize: '0.85rem', marginBottom: '0.5rem', textTransform: 'uppercase', fontWeight: 600 }}>Shop Image</p>
+              <img src={settings.images[0]} alt="Shop" style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: 'var(--radius-md)', objectFit: 'cover' }} />
+            </div>
+          )}
+          
+          <div style={{ marginBottom: '2rem' }}>
+            <p style={{ color: 'var(--gray)', fontSize: '0.85rem', marginBottom: '0.25rem', textTransform: 'uppercase', fontWeight: 600 }}>Description</p>
+            <p style={{ fontSize: '1.05rem', fontWeight: 400, color: 'var(--dark)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{settings.description || 'Not Set'}</p>
+          </div>
+
+          <hr style={{ margin: '2rem 0', borderColor: 'var(--gray-light)' }} />
+
+          <h4 style={{ marginBottom: '1rem', color: 'var(--primary-dark)', fontSize: '1.1rem' }}>Schedule & Availability</h4>
+          
+          <div style={{ marginBottom: '1.5rem' }}>
+            <p style={{ color: 'var(--gray)', fontSize: '0.85rem', marginBottom: '0.5rem', textTransform: 'uppercase', fontWeight: 600 }}>Working Days</p>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              {workingDays.length > 0 ? workingDays.map(day => (
+                <span key={day} className="badge badge-primary">{day}</span>
+              )) : <span className="text-muted">Not Set</span>}
+            </div>
+          </div>
+
+          <div>
+            <p style={{ color: 'var(--gray)', fontSize: '0.85rem', marginBottom: '0.5rem', textTransform: 'uppercase', fontWeight: 600 }}>Blocked Dates</p>
+            {blockedDates.length > 0 ? (
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                {blockedDates.map((bd, i) => (
+                  <li key={i} style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <span style={{ fontWeight: 600, color: 'var(--dark)' }}>{new Date(bd.date).toLocaleDateString()}</span>
+                    <span className="badge badge-warning">{bd.reason}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-muted" style={{ margin: 0 }}>No blocked dates configured.</p>
+            )}
+          </div>
+
+          <div style={{ marginTop: '2.5rem', textAlign: 'center' }}>
+            <button className="btn btn-outline" onClick={() => setIsEditing(true)}>
+              <Pencil size={16} style={{ marginRight: '0.5rem' }} /> Edit Shop Details
+            </button>
+          </div>
+        </div>
+      ) : (
       <form onSubmit={handleSubmitClick} className="admin-form card" style={{ padding: '2rem', maxWidth: '800px', marginTop: '1.5rem' }}>
         {message && (
           <div className={`alert ${message.type === 'success' ? 'alert-success' : 'alert-error'}`}>
@@ -135,8 +246,8 @@ const AdminSettingsPage = () => {
           </div>
         )}
         <div className="form-group">
-          <label>Business Name</label>
-          <input type="text" name="businessName" value={settings.businessName} onChange={handleChange} required className="input-field" />
+          <label>Shop Name</label>
+          <input type="text" name="shopName" value={settings.shopName} onChange={handleChange} required className="input-field" />
         </div>
         
         <div className="form-row">
@@ -153,6 +264,16 @@ const AdminSettingsPage = () => {
         <div className="form-group">
           <label>Address</label>
           <input type="text" name="address" value={settings.address} onChange={handleChange} required className="input-field" />
+        </div>
+        
+        <div className="form-group">
+          <label>Shop Image</label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
+            {settings.images && settings.images.length > 0 && (
+              <img src={settings.images[0]} alt="Preview" style={{ width: '80px', height: '80px', borderRadius: 'var(--radius-md)', objectFit: 'cover' }} />
+            )}
+            <input type="file" accept="image/*" onChange={handleImageUpload} className="input-field" style={{ flex: 1 }} />
+          </div>
         </div>
 
         <div className="form-row">
@@ -284,12 +405,16 @@ const AdminSettingsPage = () => {
           </div>
         )}
 
-        <div className="form-actions" style={{ marginTop: '2rem' }}>
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.75rem', fontSize: '1rem' }} disabled={saving}>
-            {saving ? 'Saving...' : 'Save All Settings & Schedule'}
+        <div className="form-actions" style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
+          <button type="button" className="btn btn-outline" style={{ flex: 1, padding: '0.75rem', fontSize: '1rem' }} onClick={() => { fetchSettings(); setIsEditing(false); }} disabled={saving}>
+            Cancel
+          </button>
+          <button type="submit" className="btn btn-primary" style={{ flex: 1, padding: '0.75rem', fontSize: '1rem' }} disabled={saving}>
+            {saving ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </form>
+      )}
 
       <ConfirmModal 
         isOpen={showConfirmModal}

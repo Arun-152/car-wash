@@ -8,65 +8,86 @@
 
 .confirmation-card {
   background: white;
-  padding: 3rem;
+  padding: 3.5rem 3rem;
   border-radius: var(--radius-lg);
   max-width: 600px;
   width: 100%;
   text-align: center;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--border);
 }
 
 .success-icon {
   font-size: 5rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  display: inline-block;
+  color: var(--success);
+  background: var(--success-light);
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .confirmation-card h2 {
-  font-size: 2rem;
+  font-size: 2.25rem;
   color: var(--dark);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 .confirmation-card p {
   color: var(--gray);
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
 }
 
 .booking-code-box {
-  background: var(--primary-light);
-  padding: 1.5rem;
+  background: var(--light);
+  padding: 1.75rem;
   border-radius: var(--radius-md);
-  margin-bottom: 2rem;
-  border: 1px dashed var(--primary);
+  margin-bottom: 2.5rem;
+  border: 1px dashed var(--border-strong);
 }
 
 .booking-code-box span {
-  color: var(--primary-dark);
-  font-size: 0.875rem;
-  font-weight: 600;
+  color: var(--gray);
+  font-size: 0.8125rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.05em;
+  display: block;
+  margin-bottom: 0.5rem;
 }
 
 .booking-code-box h3 {
   font-size: 2.5rem;
-  color: var(--primary);
-  margin-top: 0.5rem;
+  color: var(--dark);
+  margin: 0;
+  font-family: monospace;
+  letter-spacing: 0.1em;
 }
 
 .confirmation-details {
   text-align: left;
-  background: var(--light);
+  background: white;
   padding: 2rem;
   border-radius: var(--radius-md);
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
 }
 
 .detail-row {
   display: flex;
   justify-content: space-between;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid var(--gray-light);
+  padding: 0.875rem 0;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 0.95rem;
 }
 
 .detail-row:last-child {
@@ -76,26 +97,42 @@
 .detail-row span {
   color: var(--gray);
 }
+.detail-row strong {
+  color: var(--dark);
+}
 
 .detail-row.total {
   margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 2px solid var(--gray-light);
+  padding-top: 1.25rem;
+  border-top: 1px dashed var(--border-strong);
   font-size: 1.25rem;
+  align-items: center;
 }
 
 .detail-row.total strong {
   color: var(--primary);
+  font-size: 1.5rem;
+  font-weight: 800;
 }
 
 .confirmation-actions {
   display: flex;
   justify-content: center;
-  gap: 1.5rem;
+  gap: 1rem;
+}
+
+.confirmation-actions .btn {
+  min-width: 180px;
 }
 
 @media (max-width: 600px) {
+  .confirmation-card {
+    padding: 2.5rem 1.5rem;
+  }
   .confirmation-actions {
     flex-direction: column;
+  }
+  .confirmation-actions .btn {
+    width: 100%;
   }
 }

@@ -1,11 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { Edit2, Trash2, Car } from 'lucide-react';
+import { Edit2, Trash2, Car, Bike, Truck, Zap, MapPin } from 'lucide-react';
 import Navbar from '../../components/common/Navbar';
 import Footer from '../../components/common/Footer';
 import { getMyVehicles, addVehicle, updateVehicle, deleteVehicle } from '../../services/api';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import { toast } from 'react-toastify';
 import './MyVehiclesPage.css';
+
+const getVehicleIcon = (type) => {
+  const t = (type || '').toLowerCase();
+  if (t.includes('bike')) return <Bike size={24} />;
+  if (t.includes('ev') || t.includes('electric')) return (
+    <div style={{ position: 'relative', display: 'flex' }}>
+      <Car size={24} />
+      <Zap size={14} style={{ position: 'absolute', top: -6, right: -6, fill: 'currentColor' }} />
+    </div>
+  );
+  if (t.includes('suv')) return <Car size={24} />;
+  if (t.includes('heavy') || t.includes('truck')) return <Truck size={24} />;
+  return <Car size={24} />;
+};
 
 const MyVehiclesPage = () => {
   const [vehicles, setVehicles] = useState([]);
@@ -212,20 +226,43 @@ const MyVehiclesPage = () => {
             <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>You haven't added any vehicles yet. Click the button above to add one.</p>
           </div>
         ) : !isFormOpen && (
-          <div className="vehicles-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+          <div className="vehicles-grid">
             {vehicles.map(vehicle => (
-              <div key={vehicle._id} className="vehicle-card card card-hover" style={{ padding: '1.5rem', position: 'relative' }}>
-                <div className="vehicle-icon" style={{ marginBottom: '1rem', color: 'var(--primary)' }}>
-                  <Car size={32} />
+              <div key={vehicle._id} className="vehicle-card">
+                <div className="vc-header">
+                  <div className="vc-icon-wrap">
+                    {getVehicleIcon(vehicle.vehicleType)}
+                  </div>
+                  <div className="vc-company">
+                    {vehicle.brand}
+                  </div>
                 </div>
-                <div className="vehicle-details">
-                  <h4 style={{ fontSize: '1.2rem', marginBottom: '0.25rem' }}>{vehicle.brand} {vehicle.model}</h4>
-                  <p className="vehicle-number" style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }}>{vehicle.vehicleNumber}</p>
-                  <span className="badge badge-neutral">{vehicle.vehicleType}</span>
+
+                <div className="vc-body">
+                  <div className="vc-row">
+                    <span className="vc-label">Vehicle Number</span>
+                    <span className="vc-value vc-number">{vehicle.vehicleNumber}</span>
+                  </div>
+                  <div className="vc-row">
+                    <span className="vc-label">Location</span>
+                    <span className="vc-value" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <MapPin size={16} color="#111827" />
+                      {vehicle.model}
+                    </span>
+                  </div>
+                  <div className="vc-row">
+                    <span className="vc-label">Vehicle Type</span>
+                    <span className="vc-badge">{vehicle.vehicleType}</span>
+                  </div>
                 </div>
-                <div className="vehicle-actions" style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', display: 'flex', gap: '0.5rem' }}>
-                  <button className="btn btn-outline" style={{ padding: '0.4rem' }} onClick={() => handleOpenForm(vehicle)}><Edit2 size={16} /></button>
-                  <button className="btn btn-danger" style={{ padding: '0.4rem' }} onClick={() => handleDelete(vehicle._id)}><Trash2 size={16} /></button>
+
+                <div className="vc-footer">
+                  <button className="vc-btn vc-btn--edit" onClick={() => handleOpenForm(vehicle)}>
+                    <Edit2 size={16} /> Edit
+                  </button>
+                  <button className="vc-btn vc-btn--delete" onClick={() => handleDelete(vehicle._id)}>
+                    <Trash2 size={16} /> Delete
+                  </button>
                 </div>
               </div>
             ))}

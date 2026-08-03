@@ -2,18 +2,30 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/common/Navbar';
 import Footer from '../../components/common/Footer';
-import { getShopSettings, getServices } from '../../services/api';
+import { getShopSettings, getServices, getPublicAvailability } from '../../services/api';
 import './HomePage.css';
 
+const to12h = (timeStr) => {
+  if (!timeStr) return '';
+  const [h, m] = timeStr.split(':');
+  const hNum = parseInt(h, 10);
+  const suffix = hNum >= 12 ? 'PM' : 'AM';
+  const hours = hNum % 12 || 12;
+  return `${hours}:${m} ${suffix}`;
+};
+
 const mockReviews = [
-  { id: 1, name: 'Rahul Sharma', comment: 'Amazing service! My car looks brand new.', rating: 5 },
-  { id: 2, name: 'Priya Patel', comment: 'Very convenient booking process and friendly staff.', rating: 4 },
-  { id: 3, name: 'Amit Singh', comment: 'Best detailing I have ever had. Highly recommend.', rating: 5 }
+  { id: 1, name: '— Rahul, Kottakkal', comment: 'Service super ayirunnu. Booking process valare easy aanu. Staff nalla friendly aanu.', rating: 5 },
+  { id: 2, name: '— Anjali, Malappuram', comment: 'Car full clean ayi kitti. Time correct ayi delivery cheythu. Highly recommended.', rating: 5 },
+  { id: 3, name: '— Nikhil, Perinthalmanna', comment: 'Ceramic coating quality valare nannayirunnu. Worth the money.', rating: 5 },
+  { id: 4, name: '— Fathima, Tirur', comment: 'Professional service. Booking muthal delivery vare nalla experience ayirunnu.', rating: 5 },
+  { id: 5, name: '— Asif, Kottakkal', comment: 'Vehicle pickup and wash quality super. Ini eppozhum ivide thanne book cheyyum.', rating: 5 }
 ];
 
 const HomePage = () => {
   const [shop, setShop] = useState(null);
   const [services, setServices] = useState([]);
+  const [availability, setAvailability] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -22,11 +34,14 @@ const HomePage = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const shopData = await getShopSettings();
+        const [shopData, servicesData, avData] = await Promise.all([
+          getShopSettings(),
+          getServices({ limit: 3 }),
+          getPublicAvailability()
+        ]);
         setShop(shopData);
-        // Fetch only the latest 3 services for the Home page
-        const servicesData = await getServices({ limit: 3 });
         setServices(servicesData.filter(s => s.isActive));
+        setAvailability(avData);
       } catch (err) {
         console.error('Error fetching home data:', err);
         setError('Failed to load data. Please try again.');
@@ -188,34 +203,41 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* About Our Car Wash & Contact Location */}
+      {/* About Clean Wash & Contact Location */}
       <section className="section bg-white" id="about">
         <div className="container">
           <div className="about-contact-layout">
             <div className="about-section">
-              <h2 className="section-title">About Our Car Wash</h2>
-              <h3>{shopName}</h3>
+              <h2 className="section-title">About {shop?.shopName || 'Clean Wash'}</h2>
+              <h3>{shop?.shopName || 'Clean Wash'}</h3>
               <p className="about-description">
-                {shop?.description || 'We are dedicated to providing the highest quality car wash and detailing services. Experience the difference with our professional care.'}
+                {shop?.description || 'Information about the shop is currently not available.'}
               </p>
               <div className="shop-details-list">
                 <div className="detail-item">
-                  <strong>Opening Hours:</strong> {shop?.openingTime || '09:00 AM'} - {shop?.closingTime || '06:00 PM'}
+                  <strong>Working Hours:</strong> {shop?.openingTime ? `${to12h(shop.openingTime)} - ${to12h(shop.closingTime)}` : 'Not Available'}
+                </div>
+                <div className="detail-item mt-2">
+                  <strong>Working Days:</strong> {availability?.workingDays?.length > 0 ? availability.workingDays.join(', ') : 'Not Available'}
                 </div>
               </div>
             </div>
-            <div className="contact-section card">
-              <h3>Contact & Location</h3>
-              <div className="contact-details">
-                <p><strong>{shopName}</strong></p>
-                <p>{shop?.address || '123 Main Street'}</p>
-                <p>{shop?.city ? `${shop.city}, ${shop.state} ${shop.zipCode}` : 'City, State, ZIP'}</p>
-                <p className="mt-3"><strong>Phone:</strong> {shop?.phone || '+1 234 567 8900'}</p>
-                <p><strong>Email:</strong> {shop?.email || 'contact@example.com'}</p>
+            <div className="contact-section card" style={{ padding: '0', overflow: 'hidden' }}>
+              {shop?.images && shop.images.length > 0 && (
+                <img src={shop.images[0]} alt="Shop" style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
+              )}
+              <div style={{ padding: '2rem' }}>
+                <h3>Contact & Location</h3>
+                <div className="contact-details">
+                  <p><strong>{shop?.shopName || 'Clean Wash'}</strong></p>
+                  <p>{shop?.address }</p>
+                  <p className="mt-3"><strong>Phone:</strong> {shop?.phone || 'Not Available'}</p>
+                  <p><strong>Email:</strong> {shop?.email || 'Not Available'}</p>
+                </div>
+                <a href={`https://maps.google.com/?q=${shop?.address || ''}`} target="_blank" rel="noopener noreferrer" className="btn btn-outline w-100 mt-4">
+                  Get Directions
+                </a>
               </div>
-              <a href={`https://maps.google.com/?q=${shop?.address},${shop?.city}`} target="_blank" rel="noopener noreferrer" className="btn btn-outline w-100 mt-4">
-                Get Directions
-              </a>
             </div>
           </div>
         </div>

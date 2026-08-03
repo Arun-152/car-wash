@@ -85,6 +85,25 @@ const BookingPage = () => {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedSlot, setSelectedSlot] = useState(null);
+  const [vehicleValidationError, setVehicleValidationError] = useState(null);
+
+  // ── Vehicle Validation Helper ──────────────────────────────────────────
+  const validateVehicleCompatibility = useCallback((service, vehicle) => {
+    if (!service || !vehicle) return null;
+    const sName = service.serviceName.toLowerCase();
+    const vType = vehicle.vehicleType.toLowerCase();
+
+    if (sName.includes('bike') || sName.includes('two wheeler')) {
+      if (vType !== 'bike') return 'This service is available only for Bike vehicles.';
+    } else if (sName.includes('heavy') || sName.includes('truck')) {
+      if (vType !== 'heavy' && vType !== 'truck') return 'This service is available only for Heavy vehicles.';
+    } else if (sName.includes('car') || sName.includes('suv') || sName.includes('four wheeler')) {
+      if (!['car', 'suv', 'ev car', 'ev'].includes(vType)) {
+        return 'Please select a compatible vehicle for the chosen service.';
+      }
+    }
+    return null;
+  }, []);
 
   // ── Load initial data ──────────────────────────────────────────────────
 
@@ -106,18 +125,23 @@ const BookingPage = () => {
         setShopSettings(shopData);
 
         // Pre-select service if navigated from "Book Now" button
+        let initialSrv = null;
         if (location.state?.selectedService) {
-          const srv = activeServices.find(
+          initialSrv = activeServices.find(
             (s) => s._id === location.state.selectedService
           );
-          if (srv) setSelectedService(srv);
+          if (initialSrv) setSelectedService(initialSrv);
         } else if (activeServices.length > 0) {
-          setSelectedService(activeServices[0]);
+          initialSrv = activeServices[0];
+          setSelectedService(initialSrv);
         }
 
         // Pre-select first vehicle if available
         if (vehicleData.length > 0) {
           setSelectedVehicle(vehicleData[0]);
+          if (initialSrv) {
+            setVehicleValidationError(validateVehicleCompatibility(initialSrv, vehicleData[0]));
+          }
         }
       } catch (err) {
         setError('Failed to load booking details. Please refresh and try again.');
@@ -226,6 +250,7 @@ const BookingPage = () => {
     // Validations
     if (!selectedService) return setBookingError('Please select a service.');
     if (!selectedVehicle) return setBookingError('Please select a vehicle or add one if you haven\'t already.');
+    if (vehicleValidationError) return setBookingError('Please select a compatible vehicle for the chosen service.');
     if (!selectedDate) return setBookingError('Please select a date.');
     if (dateMessage?.type === 'error') return setBookingError(dateMessage.msg);
     if (!selectedSlot) return setBookingError('Please select a time slot.');
@@ -317,11 +342,27 @@ const BookingPage = () => {
     const srv = services.find(s => s._id === e.target.value);
     setSelectedService(srv || null);
     setSelectedSlot(null); // reset slot when duration might change
+    
+    if (srv && selectedVehicle) {
+      const err = validateVehicleCompatibility(srv, selectedVehicle);
+      setVehicleValidationError(err);
+      if (err) toast.error(err);
+    } else {
+      setVehicleValidationError(null);
+    }
   };
 
   const handleVehicleChange = (e) => {
     const v = vehicles.find(v => v._id === e.target.value);
     setSelectedVehicle(v || null);
+    
+    if (selectedService && v) {
+      const err = validateVehicleCompatibility(selectedService, v);
+      setVehicleValidationError(err);
+      if (err) toast.error(err);
+    } else {
+      setVehicleValidationError(null);
+    }
   };
 
   // ── Loading / error states ─────────────────────────────────────────────
@@ -429,6 +470,11 @@ const BookingPage = () => {
                       <option key={v._id} value={v._id}>{v.brand} {v.model} ({v.vehicleNumber})</option>
                     ))}
                   </select>
+                  {vehicleValidationError && (
+                    <div className="booking-alert booking-alert--error" style={{ marginTop: '0.75rem', padding: '0.75rem', fontSize: '0.875rem' }}>
+                      {vehicleValidationError}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

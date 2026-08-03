@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { forgotPasswordAPI } from '../../services/api';
+import './AuthPages.css';
 
 const ForgotPasswordPage = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,11 +17,9 @@ const ForgotPasswordPage = () => {
     }
 
     setLoading(true);
-    setMessage('');
     try {
       const response = await forgotPasswordAPI(email);
-      setMessage(response.message);
-      toast.success('OTP generated successfully.');
+      toast.success(response.message || 'OTP generated successfully.');
       navigate('/verify-otp', { state: { email } });
     } catch (error) {
       toast.error(error.response?.data?.message || 'Something went wrong. Please try again later.');
@@ -31,47 +29,49 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="container" style={{ minHeight: 'calc(100vh - 70px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="card" style={{ width: '100%', maxWidth: '400px', padding: '2.5rem' }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '0.5rem' }}>Forgot Password</h2>
-        <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-          Enter your registered email address to receive a One-Time Password (OTP).
-        </p>
+    <div className="auth-page-wrapper">
+      <div className="auth-split-layout">
+        {/* Left Side Branding */}
+        <div className="auth-brand-side">
+          <h1>Password Recovery</h1>
+          <p>Don't worry, it happens to the best of us. Let's get your account back.</p>
+        </div>
 
-        {message && (
-          <div style={{ backgroundColor: '#d1fae5', color: '#065f46', padding: '1rem', borderRadius: '4px', marginBottom: '1rem', fontSize: '0.9rem', textAlign: 'center' }}>
-            {message}
+        {/* Right Side Form */}
+        <div className="auth-form-side">
+          <div className="auth-form-container">
+            <div className="auth-header">
+              <h2>Forgot Password?</h2>
+              <p>Enter your registered email address to receive a One-Time Password (OTP).</p>
+            </div>
+
+            <form className="auth-form" onSubmit={handleSubmit}>
+              <div className="auth-form-group">
+                <label className="auth-label">Email Address</label>
+                <input
+                  type="email"
+                  className="auth-input"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your registered email"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="btn btn-primary auth-btn"
+                disabled={loading}
+              >
+                {loading ? 'Sending OTP...' : 'Send OTP'}
+              </button>
+            </form>
+
+            <div className="auth-footer">
+              Remember your password? <Link to="/login">Back to Login</Link>
+            </div>
           </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-            <label>Email Address</label>
-            <input
-              type="email"
-              className="form-control"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="btn btn-primary"
-            style={{ width: '100%', marginBottom: '1rem' }}
-            disabled={loading}
-          >
-            {loading ? 'Sending...' : 'Send OTP'}
-          </button>
-
-          <div style={{ textAlign: 'center' }}>
-            <Link to="/login" className="btn btn-outline" style={{ width: '100%' }}>
-              Back to Login
-            </Link>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   );

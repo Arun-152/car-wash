@@ -53,7 +53,7 @@ const Navbar = () => {
         {/* Brand Logo */}
         <Link to="/" className="navbar-brand">
           <Droplets className="brand-icon" size={24} strokeWidth={2.5} />
-          <span className="brand-text">WashBooking</span>
+          <span className="brand-text">Clean Wash</span>
         </Link>
 
         {/* Desktop Navigation Center */}

@@ -1,7 +1,9 @@
+/* MyBookingsPage.css */
 .bookings-page-container {
   padding: 3rem 1.5rem;
   min-height: calc(100vh - 300px);
   max-width: 1000px;
+  margin: 0 auto;
 }
 
 .bookings-header {
@@ -11,93 +13,96 @@
 .bookings-header h2 {
   font-size: 2rem;
   color: var(--dark);
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.bookings-header p {
+  color: var(--gray);
+  font-size: 0.9375rem;
 }
 
 .tabs {
   display: flex;
-  gap: 1rem;
-  border-bottom: 2px solid var(--gray-light);
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1rem;
+  margin-bottom: 2rem;
 }
 
 .tab-btn {
   background: transparent;
   border: none;
-  font-size: 1.125rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--gray);
-  padding: 0.75rem 1.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-full);
   cursor: pointer;
-  position: relative;
   transition: var(--transition);
 }
 
 .tab-btn:hover {
-  color: var(--primary);
+  color: var(--dark);
+  background: var(--light);
 }
 
 .tab-btn.active {
-  color: var(--primary);
-}
-
-.tab-btn.active::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background-color: var(--primary);
+  color: var(--primary-dark);
+  background: var(--primary-light);
 }
 
 .bookings-list {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 .booking-list-card {
   padding: 1.5rem;
   border-radius: var(--radius-lg);
-  border: 1px solid var(--gray-light);
+  border: 1px solid var(--border);
   background: white;
-  transition: var(--transition);
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: var(--shadow-sm);
 }
 
 .booking-list-card:hover {
-  box-shadow: var(--shadow-sm);
-  border-color: var(--primary-light);
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid var(--gray-light);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .booking-code {
   font-weight: 700;
   color: var(--dark);
-  font-size: 1.125rem;
+  font-size: 1rem;
+  background: var(--light);
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-family: monospace;
+  letter-spacing: 0.05em;
+  border: 1px solid var(--border);
 }
 
 .status-badge {
-  padding: 0.25rem 0.75rem;
+  padding: 0.35rem 0.875rem;
   border-radius: var(--radius-full);
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-transform: capitalize;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
-
-.badge-warning { background: #fef3c7; color: #d97706; }
-.badge-info { background: #e0f2fe; color: #0284c7; }
-.badge-primary { background: #dbeafe; color: #2563eb; }
-.badge-success { background: #dcfce3; color: #16a34a; }
-.badge-danger { background: #fee2e2; color: #dc2626; }
-.badge-secondary { background: #f1f5f9; color: #475569; }
 
 .card-body {
   display: grid;
@@ -108,69 +113,91 @@
 }
 
 .info-column h4 {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   margin-bottom: 0.25rem;
+  font-weight: 600;
+  color: var(--dark);
 }
 
 .service-name {
   color: var(--primary);
-  font-weight: 500;
+  font-weight: 600;
   margin-bottom: 0.5rem;
+  font-size: 0.9375rem;
 }
 
 .vehicle-info {
   color: var(--gray);
   font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .time-column {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .date-box {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--dark);
+  color: var(--slate-700);
   font-weight: 500;
+  font-size: 0.9375rem;
+}
+
+.date-box svg {
+  color: var(--gray-light);
 }
 
 .price-column {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0.5rem;
+  gap: 0.25rem;
 }
 
 .amount {
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 800;
+  color: var(--dark);
+  letter-spacing: -0.02em;
 }
 
 .payment-status {
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.payment-status.unpaid { color: #dc2626; }
-.payment-status.paid { color: #16a34a; }
+.payment-status.unpaid { color: var(--danger); background: var(--danger-light); padding: 0.2rem 0.5rem; border-radius: 4px; }
+.payment-status.paid { color: var(--success); background: var(--success-light); padding: 0.2rem 0.5rem; border-radius: 4px; }
 
 .card-footer {
   display: flex;
   justify-content: flex-end;
+  gap: 1rem;
 }
 
 @media (max-width: 768px) {
   .card-body {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
   .price-column {
     align-items: flex-start;
+    border-top: 1px dashed var(--border);
+    padding-top: 1rem;
   }
   .tabs {
     overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+  .tab-btn {
+    white-space: nowrap;
   }
 }

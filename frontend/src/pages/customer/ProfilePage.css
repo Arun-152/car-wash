@@ -1,58 +1,70 @@
+/* ProfilePage.css */
 .profile-page-wrapper {
-  padding: 2rem 1rem;
+  padding: 3rem 1.5rem;
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
 .profile-page-header {
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 
 .profile-page-header h2 {
   font-size: 2rem;
   color: var(--dark);
   margin-bottom: 0.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .profile-page-header p {
   color: var(--gray);
+  font-size: 0.9375rem;
 }
 
 .profile-grid {
   display: grid;
-  grid-template-columns: 350px 1fr;
-  gap: 2rem;
+  grid-template-columns: 320px 1fr;
+  gap: 2.5rem;
+  align-items: start;
 }
 
 .profile-card {
-  padding: 2rem;
+  padding: 2.5rem 2rem;
   text-align: center;
-  margin-bottom: 2rem;
+  background: white;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
 }
 
 .profile-avatar {
-  width: 120px;
-  height: 120px;
-  background-color: var(--primary-light);
-  color: var(--primary);
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 3rem;
-  font-weight: bold;
-  margin: 0 auto 1.5rem;
-  box-shadow: var(--shadow-sm);
+  font-size: 2.75rem;
+  font-weight: 700;
+  margin: 0 ;
+  box-shadow: 0 8px 16px rgba(37, 99, 235, 0.2);
 }
 
 .profile-name {
   font-size: 1.5rem;
   color: var(--dark);
   margin-bottom: 0.25rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .profile-email {
   color: var(--gray);
-  margin-bottom: 1.5rem;
-  font-size: 0.95rem;
+  margin-bottom: 2rem;
+  font-size: 0.9375rem;
 }
 
 .profile-stats-grid {
@@ -64,22 +76,23 @@
 }
 
 .profile-stat-box {
-  background-color: #f8fafc;
-  padding: 1rem;
-  border-radius: 8px;
-  border: 1px solid var(--border-light);
+  background-color: var(--light);
+  padding: 1.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
 }
 
 .profile-stat-label {
   font-size: 0.75rem;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
   color: var(--gray);
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.35rem;
   font-weight: 600;
 }
 
 .profile-stat-val {
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--dark);
 }
@@ -87,7 +100,7 @@
 .profile-actions {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 /* Vehicles Section inside Profile */
@@ -101,11 +114,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
 }
 
 .vehicles-header-flex h3 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   color: var(--dark);
+  font-weight: 600;
 }
 
 .vehicle-cards-grid {
@@ -120,18 +136,23 @@
   flex-direction: column;
   justify-content: space-between;
   transition: transform 0.2s, box-shadow 0.2s;
+  background: white;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
 }
 
 .vehicle-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
+  border-color: var(--border-strong);
 }
 
 .vehicle-card-top {
   display: flex;
   align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
 }
 
 .vehicle-icon-wrapper {
@@ -139,34 +160,37 @@
   color: var(--primary);
   width: 48px;
   height: 48px;
-  border-radius: 8px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .vehicle-info-basic h4 {
   font-size: 1.125rem;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.35rem;
   color: var(--dark);
+  font-weight: 600;
 }
 
 .vehicle-info-basic .vehicle-number {
-  background-color: #f1f5f9;
-  padding: 0.125rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.875rem;
+  background-color: var(--light);
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.8125rem;
   font-weight: 600;
   font-family: monospace;
-  color: var(--dark);
+  color: var(--slate-700);
   display: inline-block;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
+  letter-spacing: 0.05em;
 }
 
 .vehicle-details-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
+  gap: 1rem;
   margin-bottom: 1.5rem;
   font-size: 0.875rem;
 }
@@ -179,7 +203,10 @@
 .v-detail-label {
   color: var(--gray);
   font-size: 0.75rem;
-  margin-bottom: 0.125rem;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
 }
 
 .v-detail-val {
@@ -189,24 +216,18 @@
 
 .vehicle-card-actions {
   display: flex;
-  gap: 0.5rem;
-  border-top: 1px solid var(--border-light);
-  padding-top: 1rem;
+  gap: 0.75rem;
+  border-top: 1px dashed var(--border);
+  padding-top: 1.25rem;
 }
 
 .vehicle-card-actions button {
   flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  font-size: 0.875rem;
 }
 
 /* Change Password Modal Form */
 .pwd-form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .pwd-form-group label {
@@ -214,7 +235,7 @@
   margin-bottom: 0.5rem;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--dark);
+  color: var(--slate-700);
 }
 
 .pwd-input-wrapper {
@@ -223,10 +244,17 @@
 
 .pwd-input-wrapper input {
   width: 100%;
-  padding: 0.75rem 2.5rem 0.75rem 1rem;
-  border: 1px solid var(--border-light);
-  border-radius: 6px;
-  font-size: 1rem;
+  padding: 0.625rem 2.5rem 0.625rem 1rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  transition: var(--transition);
+}
+
+.pwd-input-wrapper input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-ring);
 }
 
 .pwd-toggle-btn {
@@ -241,10 +269,23 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0.2rem;
+  border-radius: 4px;
+}
+
+.pwd-toggle-btn:hover {
+  background: var(--light);
+  color: var(--dark);
 }
 
 @media (max-width: 992px) {
   .profile-grid {
     grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  .profile-card {
+    max-width: 500px;
+    margin: 0 auto;
+    width: 100%;
   }
 }
