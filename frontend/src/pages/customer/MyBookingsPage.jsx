@@ -85,6 +85,12 @@ const MyBookingsPage = () => {
               Completed
             </button>
             <button
+              className={`tab-btn ${activeTab === 'confirmed' ? 'active' : ''}`}
+              onClick={() => handleTabChange('confirmed')}
+            >
+              Confirmed
+            </button>
+            <button
               className={`tab-btn ${activeTab === 'pending' ? 'active' : ''}`}
               onClick={() => handleTabChange('pending')}
             >

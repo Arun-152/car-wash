@@ -1,5 +1,6 @@
 const Booking = require('../models/Booking');
 const Availability = require('../models/Availability');
+const autoUpdateCompletedBookings = require('../utils/autoUpdateStatus');
 const SlotOverride = require('../models/SlotOverride');
 const Service = require('../models/Service');
 const crypto = require('crypto');
@@ -427,6 +428,8 @@ const getBookingById = async (req, res, next) => {
 // ─────────────────────────────────────────────────────────────────────────────
 const getMyBookings = async (req, res, next) => {
   try {
+    await autoUpdateCompletedBookings();
+    
     const { page, limit, status } = req.query;
 
     let query = { userId: req.user._id };
@@ -438,12 +441,14 @@ const getMyBookings = async (req, res, next) => {
           { paymentStatus: 'pending' }
         ];
       } else if (status === 'completed') {
-        query.bookingStatus = { $in: ['confirmed', 'completed'] };
+        query.bookingStatus = 'completed';
       } else if (status === 'cancelled') {
         query.$or = [
           { bookingStatus: { $in: ['cancelled', 'refunded'] } },
           { paymentStatus: 'refunded' }
         ];
+      } else {
+        query.bookingStatus = status;
       }
     }
 

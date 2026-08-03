@@ -6,6 +6,7 @@ const Availability = require('../models/Availability');
 const SlotOverride = require('../models/SlotOverride');
 const WalletTransaction = require('../models/WalletTransaction');
 const { isValidObjectId } = require('../utils/validators');
+const autoUpdateCompletedBookings = require('../utils/autoUpdateStatus');
 
 // ── Shared time helpers ────────────────────────────────────────────────────
 const timeToMins = (t) => {
@@ -34,11 +35,13 @@ const normalizeBlockedDate = (entry) => {
 // ==========================================
 const getAdminDashboardStats = async (req, res) => {
   try {
+    await autoUpdateCompletedBookings();
+    
     const totalCustomers = await User.countDocuments({ role: 'customer' });
     const totalBookings = await Booking.countDocuments(Booking.getDashboardValidFilter());
     const cancelledBookings = await Booking.countDocuments({ bookingStatus: 'cancelled' });
     const completedBookings = await Booking.countDocuments({
-      bookingStatus: { $in: ['completed', 'confirmed'] }
+      bookingStatus: 'completed'
     });
 
     const revenueResult = await Booking.aggregate([
@@ -105,6 +108,8 @@ const getAdminDashboardStats = async (req, res) => {
 // ==========================================
 const getAdminReports = async (req, res) => {
   try {
+    await autoUpdateCompletedBookings();
+    
     const { timeRange, startDate, endDate, serviceId, status } = req.query;
 
     const query = {};
@@ -137,7 +142,7 @@ const getAdminReports = async (req, res) => {
     if (serviceId && serviceId !== 'all') query.serviceId = serviceId;
     if (status && status !== 'all') {
       if (status === 'completed') {
-        query.bookingStatus = { $in: ['completed', 'confirmed'] };
+        query.bookingStatus = { $in: ['completed'] };
       } else {
         query.bookingStatus = status;
       }
@@ -156,7 +161,7 @@ const getAdminReports = async (req, res) => {
     const serviceCounts = {};
 
     allBookings.forEach(b => {
-      if (b.bookingStatus === 'completed' || b.bookingStatus === 'confirmed') completedBookings++;
+      if (b.bookingStatus === 'completed') completedBookings++;
       if (b.bookingStatus === 'cancelled') cancelledBookings++;
       if (b.bookingSource === 'admin') manualBookings++;
 
@@ -424,6 +429,8 @@ const deleteService = async (req, res) => {
 // ==========================================
 const getAllBookings = async (req, res) => {
   try {
+    await autoUpdateCompletedBookings();
+    
     const { page, limit, search, status, date, tab } = req.query;
     let query = {};
 
@@ -432,7 +439,7 @@ const getAllBookings = async (req, res) => {
     }
     if (status) {
       if (status === 'completed') {
-        query.bookingStatus = { $in: ['completed', 'confirmed'] };
+        query.bookingStatus = { $in: ['completed'] };
       } else {
         query.bookingStatus = status;
       }

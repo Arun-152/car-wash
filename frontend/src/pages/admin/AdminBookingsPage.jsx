@@ -144,6 +144,7 @@ const AdminBookingsPage = () => {
                 <select className="input-field" value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}>
                   <option value="">All Statuses</option>
                   <option value="pending">Pending</option>
+                  <option value="confirmed">Confirmed</option>
                   <option value="in-progress">In Progress</option>
                   <option value="completed">Completed</option>
                   <option value="cancelled">Cancelled</option>
