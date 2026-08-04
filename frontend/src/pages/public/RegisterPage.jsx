@@ -65,12 +65,12 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="auth-page-wrapper">
+    <div className="auth-page-wrapper signup-page-wrapper">
       <div className="auth-split-layout">
         {/* Left Side Branding */}
         <div className="auth-brand-side">
-          <h1>Join SparkleWash</h1>
-          <p>Create an account to book your washes easily, manage multiple vehicles, and access your personal wallet.</p>
+          <h1>Join Clean Wash</h1>
+          <p>Create your account to book your car wash services, manage your vehicles, and access your wallet.</p>
         </div>
 
         {/* Right Side Form */}

@@ -51,6 +51,9 @@ const AppLayout = () => {
 
   const hideSidebarRoutes = ['/', '/login', '/register', '/forgot-password', '/verify-otp', '/reset-password'];
   const shouldHideSidebar = hideSidebarRoutes.includes(location.pathname) || location.pathname.startsWith('/reset-password');
+  
+  const hideFooterRoutes = ['/login', '/register', '/forgot-password', '/verify-otp', '/reset-password'];
+  const shouldHideFooter = hideFooterRoutes.includes(location.pathname) || location.pathname.startsWith('/reset-password');
 
   const showSidebar = user && user.role === 'customer' && !shouldHideSidebar;
 
@@ -59,11 +62,11 @@ const AppLayout = () => {
       <Navbar />
       <div className="app-main-layout" style={{ display: 'flex', flex: 1, backgroundColor: '#f8fafc' }}>
         {showSidebar && <UserSidebar />}
-        <div className="app-content-area" style={{ flex: 1, overflowX: 'hidden', paddingBottom: '2rem' }}>
+        <div className="app-content-area" style={{ flex: 1, overflowX: 'hidden', paddingBottom: shouldHideFooter ? '0' : '2rem' }}>
           <Outlet />
         </div>
       </div>
-      <Footer />
+      {!shouldHideFooter && <Footer />}
     </div>
   );
 };
