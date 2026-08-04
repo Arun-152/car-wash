@@ -50,7 +50,8 @@ const parseLocalDate = (dateStr) => {
 
 /** Get today as "YYYY-MM-DD" string (local) */
 const todayStr = () => {
-  const d = new Date();
+  const nowStr = new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' });
+  const d = new Date(nowStr);
   return [
     d.getFullYear(),
     String(d.getMonth() + 1).padStart(2, '0'),
@@ -215,9 +216,12 @@ const BookingPage = () => {
         const slots = await getAvailableSlots(selectedDate, selectedService.duration, selectedService._id);
         setAvailableSlots(slots);
         if (slots.length === 0) {
+          const isToday = selectedDate === todayStr();
           setDateMessage({
             type: 'info',
-            msg: 'No available time slots for this date. All slots are fully booked or the shop is closed. Please choose another date.',
+            msg: isToday 
+              ? 'No available slots for today. Please choose another date.'
+              : 'No available time slots for this date. All slots are fully booked or the shop is closed. Please choose another date.',
           });
         } else {
           setDateMessage(null);

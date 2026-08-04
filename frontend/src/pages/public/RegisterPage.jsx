@@ -3,12 +3,15 @@ import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { registerCustomer } from '../../services/api';
 import { toast } from 'react-toastify';
+import { Eye, EyeOff } from 'lucide-react';
 import './AuthPages.css';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
-    name: '', email: '', phone: '', password: ''
+    name: '', email: '', phone: '', password: '', confirmPassword: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   
@@ -35,7 +38,10 @@ const RegisterPage = () => {
     else if (!phoneRegex.test(formData.phone)) newErrors.phone = 'Phone number must be exactly 10 digits';
 
     if (!formData.password) newErrors.password = 'Password is required';
-    else if (formData.password.length < 6) newErrors.password = 'Password must be at least 6 characters long';
+    else if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters.';
+
+    if (!formData.confirmPassword) newErrors.confirmPassword = 'Confirm Password is required';
+    else if (formData.confirmPassword !== formData.password) newErrors.confirmPassword = 'Passwords do not match';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -48,7 +54,8 @@ const RegisterPage = () => {
 
     setLoading(true);
     try {
-      await registerCustomer(formData);
+      const { confirmPassword, ...submitData } = formData;
+      await registerCustomer(submitData);
       navigate('/login', { state: { successMessage: 'Account created successfully. Please login.' } });
     } catch (err) {
       toast.error(err.response?.data?.message || 'Registration failed');
@@ -116,15 +123,48 @@ const RegisterPage = () => {
               
               <div className="auth-form-group">
                 <label className="auth-label">Password</label>
-                <input 
-                  type="password" 
-                  name="password" 
-                  className="auth-input" 
-                  placeholder="At least 6 characters"
-                  value={formData.password} 
-                  onChange={handleChange} 
-                />
+                <div style={{ position: 'relative' }}>
+                  <input 
+                    type={showPassword ? 'text' : 'password'} 
+                    name="password" 
+                    className="auth-input" 
+                    placeholder="At least 8 characters"
+                    value={formData.password} 
+                    onChange={handleChange} 
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: 0 }}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
                 {errors.password && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.password}</span>}
+              </div>
+
+              <div className="auth-form-group">
+                <label className="auth-label">Confirm Password</label>
+                <div style={{ position: 'relative' }}>
+                  <input 
+                    type={showConfirmPassword ? 'text' : 'password'} 
+                    name="confirmPassword" 
+                    className="auth-input" 
+                    placeholder="Confirm your password"
+                    value={formData.confirmPassword} 
+                    onChange={handleChange} 
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: 0 }}
+                    aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                  >
+                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+                {errors.confirmPassword && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{errors.confirmPassword}</span>}
               </div>
               
               <button type="submit" className="btn btn-primary auth-btn" disabled={loading}>

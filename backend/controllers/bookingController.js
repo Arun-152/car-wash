@@ -58,8 +58,11 @@ const getAvailableSlots = async (req, res, next) => {
     const targetDate = new Date(y, m - 1, d);
     targetDate.setHours(0, 0, 0, 0);
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const nowStr = new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' });
+    const nowKolkata = new Date(nowStr);
+    
+    const today = new Date(nowKolkata.getFullYear(), nowKolkata.getMonth(), nowKolkata.getDate());
+    
     if (targetDate < today) {
       return res.status(400).json({ message: 'Cannot book for a past date' });
     }
@@ -92,11 +95,10 @@ const getAvailableSlots = async (req, res, next) => {
     const openMins = timeToMinutes(openTimeStr);
     const closeMins = timeToMinutes(closeTimeStr);
 
-    // Advance start for today's bookings (30-min buffer)
+    // Advance start for today's bookings
     let minStartMins = openMins;
-    const now = new Date();
     if (targetDate.getTime() === today.getTime()) {
-      const currentMins = now.getHours() * 60 + now.getMinutes() + 30;
+      const currentMins = nowKolkata.getHours() * 60 + nowKolkata.getMinutes();
       if (currentMins > minStartMins) minStartMins = currentMins;
     }
 
