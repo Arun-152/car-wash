@@ -152,8 +152,8 @@ const Navbar = () => {
           )}
         </div>
       </div>
-      
-      <ConfirmModal 
+
+      <ConfirmModal
         isOpen={showLogoutModal}
         title="Logout"
         message="Are you sure you want to logout?"

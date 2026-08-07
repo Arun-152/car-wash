@@ -16,7 +16,7 @@
 .admin-sidebar {
   width: 260px;
   min-width: 260px;
-  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  background: var(--dark);
   color: white;
   position: fixed;
   top: 0;
@@ -99,8 +99,14 @@
   scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
 }
 
-.sidebar-nav::-webkit-scrollbar { width: 3px; }
-.sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+.sidebar-nav::-webkit-scrollbar {
+  width: 3px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 .sidebar-nav::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.12);
   border-radius: 4px;
@@ -140,9 +146,9 @@
 }
 
 .admin-sidebar .nav-item.active {
-  background: rgba(59, 130, 246, 0.15);
-  color: #93c5fd;
-  border-left-color: #3b82f6;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--white);
+  border-left-color: var(--primary);
   font-weight: 600;
 }
 
@@ -294,11 +300,11 @@
    SHARED ADMIN CARD
    ============================================================ */
 .admin-card {
-  background: white;
-  border-radius: var(--radius-lg, 12px);
+  background: var(--white);
+  border-radius: var(--radius-xl);
   padding: 1.75rem;
-  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.08));
-  border: 1px solid var(--border, #e2e8f0);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-light);
   overflow: hidden;
 }
 
@@ -337,7 +343,7 @@
     transform: translateX(0);
   }
 
-  .admin-sidebar.sidebar-open ~ * .sidebar-overlay,
+  .admin-sidebar.sidebar-open~* .sidebar-overlay,
   .sidebar-overlay {
     display: block;
   }

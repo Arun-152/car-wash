@@ -50,32 +50,32 @@ const UserSidebar = () => {
         </div>
 
         <nav className="user-sidebar-nav">
-          <NavLink to="/" className={({isActive}) => (isActive && location.pathname === '/' ? 'user-nav-item active' : 'user-nav-item')} end>
+          <NavLink to="/" className={({ isActive }) => (isActive && location.pathname === '/' ? 'user-nav-item active' : 'user-nav-item')} end>
             <LayoutDashboard size={20} />
             <span>Home</span>
           </NavLink>
 
-          <NavLink to="/services" className={({isActive}) => (isActive ? 'user-nav-item active' : 'user-nav-item')}>
+          <NavLink to="/services" className={({ isActive }) => (isActive ? 'user-nav-item active' : 'user-nav-item')}>
             <Car size={20} />
             <span>Services</span>
           </NavLink>
-          
-          <NavLink to="/my-bookings" className={({isActive}) => isActive ? 'user-nav-item active' : 'user-nav-item'}>
+
+          <NavLink to="/my-bookings" className={({ isActive }) => isActive ? 'user-nav-item active' : 'user-nav-item'}>
             <Calendar size={20} />
             <span>My Bookings</span>
           </NavLink>
-          
-          <NavLink to="/profile" className={({isActive}) => (isActive && location.pathname === '/profile' ? 'user-nav-item active' : 'user-nav-item')} end>
+
+          <NavLink to="/profile" className={({ isActive }) => (isActive && location.pathname === '/profile' ? 'user-nav-item active' : 'user-nav-item')} end>
             <User size={20} />
             <span>Profile</span>
           </NavLink>
 
-          <NavLink to="/my-vehicles" className={({isActive}) => isActive ? 'user-nav-item active' : 'user-nav-item'}>
+          <NavLink to="/my-vehicles" className={({ isActive }) => isActive ? 'user-nav-item active' : 'user-nav-item'}>
             <Car size={20} />
             <span>My Vehicles</span>
           </NavLink>
 
-          <NavLink to="/wallet" className={({isActive}) => isActive ? 'user-nav-item active' : 'user-nav-item'}>
+          <NavLink to="/wallet" className={({ isActive }) => isActive ? 'user-nav-item active' : 'user-nav-item'}>
             <Wallet size={20} />
             <span>Wallet</span>
           </NavLink>
@@ -89,7 +89,7 @@ const UserSidebar = () => {
         </div>
       </div>
 
-      <ConfirmModal 
+      <ConfirmModal
         isOpen={showLogoutModal}
         title="Logout"
         message="Are you sure you want to logout?"

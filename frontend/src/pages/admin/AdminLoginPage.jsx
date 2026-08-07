@@ -98,11 +98,11 @@ const AdminLoginPage = () => {
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             <div>
               <label style={{ color: '#cbd5e1', display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 600 }}>Email Address</label>
-              <input 
-                type="email" 
+              <input
+                type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required 
+                required
                 style={{
                   width: '100%',
                   padding: '0.875rem 1rem',
@@ -124,15 +124,15 @@ const AdminLoginPage = () => {
                 }}
               />
             </div>
-            
+
             <div>
               <label style={{ color: '#cbd5e1', display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 600 }}>Password</label>
               <div style={{ position: 'relative' }}>
-                <input 
-                  type={showPassword ? 'text' : 'password'} 
+                <input
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  required 
+                  required
                   style={{
                     width: '100%',
                     padding: '0.875rem 1rem',
@@ -154,8 +154,8 @@ const AdminLoginPage = () => {
                     e.target.style.boxShadow = 'none';
                   }}
                 />
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.5)' }}
                 >
@@ -164,9 +164,9 @@ const AdminLoginPage = () => {
               </div>
             </div>
 
-            <button 
-              type="submit" 
-              disabled={loading} 
+            <button
+              type="submit"
+              disabled={loading}
               style={{
                 width: '100%',
                 padding: '0.875rem',
@@ -181,8 +181,8 @@ const AdminLoginPage = () => {
                 opacity: loading ? 0.7 : 1,
                 transition: 'background 0.2s'
               }}
-              onMouseOver={(e) => { if(!loading) e.target.style.background = '#b91c1c' }}
-              onMouseOut={(e) => { if(!loading) e.target.style.background = '#dc2626' }}
+              onMouseOver={(e) => { if (!loading) e.target.style.background = '#b91c1c' }}
+              onMouseOut={(e) => { if (!loading) e.target.style.background = '#dc2626' }}
             >
               {loading ? 'Authenticating...' : 'Secure Login'}
             </button>

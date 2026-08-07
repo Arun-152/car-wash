@@ -174,8 +174,19 @@
   letter-spacing: 0.05em;
 }
 
-.payment-status.unpaid { color: var(--danger); background: var(--danger-light); padding: 0.2rem 0.5rem; border-radius: 4px; }
-.payment-status.paid { color: var(--success); background: var(--success-light); padding: 0.2rem 0.5rem; border-radius: 4px; }
+.payment-status.unpaid {
+  color: var(--danger);
+  background: var(--danger-light);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.payment-status.paid {
+  color: var(--success);
+  background: var(--success-light);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
 
 .card-footer {
   display: flex;
@@ -188,15 +199,18 @@
     grid-template-columns: 1fr;
     gap: 1rem;
   }
+
   .price-column {
     align-items: flex-start;
     border-top: 1px dashed var(--border);
     padding-top: 1rem;
   }
+
   .tabs {
     overflow-x: auto;
     padding-bottom: 0.5rem;
   }
+
   .tab-btn {
     white-space: nowrap;
   }

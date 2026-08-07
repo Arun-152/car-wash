@@ -22,13 +22,71 @@ const mockReviews = [
   { id: 5, name: '— Asif, Kottakkal', comment: 'Vehicle pickup and wash quality super. Ini eppozhum ivide thanne book cheyyum.', rating: 5 }
 ];
 
+const heroSlides = [
+  {
+    id: 1,
+    image: 'https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?auto=format&fit=crop&w=1920&q=80',
+    title: 'Premium Car Detailing',
+    desc: 'Experience the best cleaning and protection for your vehicle.',
+  },
+  {
+    id: 2,
+    image: 'https://images.unsplash.com/photo-1601362840469-51e4d8d58785?auto=format&fit=crop&w=1920&q=80',
+    title: 'Advanced Ceramic Coating',
+    desc: 'Long-lasting shine and ultimate paint protection.',
+  },
+  {
+    id: 3,
+    image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=1920&q=80',
+    title: 'Interior Deep Cleaning',
+    desc: 'Refresh your cabin with our intensive interior detailing.',
+  }
+];
+
+const Counter = ({ target, label, suffix = '+' }) => {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let start = 0;
+    const duration = 2000;
+    const increment = target / (duration / 16);
+    
+    const timer = setInterval(() => {
+      start += increment;
+      if (start >= target) {
+        setCount(target);
+        clearInterval(timer);
+      } else {
+        setCount(Math.floor(start));
+      }
+    }, 16);
+    
+    return () => clearInterval(timer);
+  }, [target]);
+
+  return (
+    <div className="counter-item">
+      <h3>{count}{suffix}</h3>
+      <p>{label}</p>
+    </div>
+  );
+};
+
 const HomePage = () => {
   const [shop, setShop] = useState(null);
   const [services, setServices] = useState([]);
   const [availability, setAvailability] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const slideTimer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+    }, 5000);
+    return () => clearInterval(slideTimer);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -78,11 +136,47 @@ const HomePage = () => {
     <div className="homepage-wrapper">
 
       {/* Hero Section */}
-      <section className="hero-section">
-        <div className="container hero-content text-center">
-          <h1>Professional Car Care Services</h1>
-          <p>Experience the best cleaning, detailing, and protection for your vehicle.</p>
-          <button className="btn btn-primary btn-large" onClick={() => navigate('/book')}>Book an Appointment</button>
+      <section className="hero-slider-section">
+        {heroSlides.map((slide, index) => (
+          <div 
+            key={slide.id} 
+            className={`hero-slide ${index === currentSlide ? 'active' : ''}`}
+            style={{ backgroundImage: `url(${slide.image})` }}
+          >
+            <div className="hero-overlay"></div>
+            <div className="container hero-content text-center">
+              <h1 className="slide-up-anim">{slide.title}</h1>
+              <p className="slide-up-anim-delay">{slide.desc}</p>
+              <div className="hero-actions slide-up-anim-delay-2">
+                <button className="btn btn-primary btn-lg" onClick={() => navigate('/book')}>Book Now</button>
+                <button className="btn btn-outline-light btn-lg" onClick={() => navigate('/services')}>Explore Services</button>
+              </div>
+            </div>
+          </div>
+        ))}
+        
+        {/* Slider Navigation Dots */}
+        <div className="slider-dots">
+          {heroSlides.map((_, idx) => (
+            <button 
+              key={idx} 
+              className={`dot ${idx === currentSlide ? 'active' : ''}`}
+              onClick={() => setCurrentSlide(idx)}
+              aria-label={`Go to slide ${idx + 1}`}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* Counters Section */}
+      <section className="counters-section">
+        <div className="container">
+          <div className="counters-grid">
+            <Counter target={5000} label="Happy Customers" />
+            <Counter target={12000} label="Cars Washed" />
+            <Counter target={10} label="Years of Experience" />
+            <Counter target={25} label="Services Offered" />
+          </div>
         </div>
       </section>
 

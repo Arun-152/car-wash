@@ -102,7 +102,7 @@
 .booking-form-col {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.25rem;
 }
 
 .booking-summary-col {
@@ -112,23 +112,9 @@
 
 @media (min-width: 993px) {
   .booking-form-col {
-    max-height: calc(100vh - 180px);
-    overflow-y: auto;
-    padding-right: 1.25rem;
     padding-bottom: 2rem;
   }
-  
-  .booking-form-col::-webkit-scrollbar {
-    width: 6px;
-  }
-  .booking-form-col::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .booking-form-col::-webkit-scrollbar-thumb {
-    background-color: var(--border-strong);
-    border-radius: 10px;
-  }
-  
+
   .summary-card {
     position: sticky;
     top: 6rem;
@@ -137,12 +123,14 @@
 
 /* ── Form Cards ── */
 .booking-section {
-  padding: 2.5rem 2rem;
+  padding: 1.5rem;
   border-radius: var(--radius-lg);
   background: white;
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
   transition: box-shadow 0.2s;
+  /* Ensure height adjusts to content and does not clip */
+  height: auto;
 }
 
 .booking-section:hover {
@@ -152,8 +140,8 @@
 .booking-section h3 {
   font-size: 1.25rem;
   font-weight: 700;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
   border-bottom: 1px solid var(--border);
   color: var(--dark);
 }
